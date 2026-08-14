@@ -1,4 +1,4 @@
-# Songbook — Worship Song App (v0.0.1)
+# Songbook — Worship Song App (v0.0.6)
 
 An offline-first worship songbook PWA. Static HTML/CSS/JS, no build step, no
 backend — built to run on GitHub Pages and install like a native app.
