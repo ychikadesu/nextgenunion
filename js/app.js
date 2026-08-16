@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.10';
+const APP_VERSION = 'v0.0.11';
 
 const state = {
   songs: [],
@@ -327,13 +327,18 @@ function applyLanguage() {
     `© ${new Date().getFullYear()} ${orgName}. All rights reserved.`;
 
   const contactBtn = document.getElementById('about-contact-btn');
+  const contactFallback = document.getElementById('about-contact-fallback');
   if (appConfig.contactEmail) {
     contactBtn.hidden = false;
     contactBtn.href = `mailto:${appConfig.contactEmail}`;
+    contactFallback.hidden = false;
+    document.getElementById('about-contact-email').textContent = appConfig.contactEmail;
   } else {
     contactBtn.hidden = true;
+    contactFallback.hidden = true;
   }
   document.getElementById('t-contactBtn').textContent = t('contactBtn');
+  document.getElementById('about-contact-copy').setAttribute('aria-label', t('copyEmailAria'));
 
   const reloadBtn = document.getElementById('reload-songs-btn');
   if (!reloadBtn.disabled) reloadBtn.textContent = t('reloadBtn');
@@ -729,6 +734,18 @@ function renderLyrics() {
 // ---------------------------------------------------------
 function bindSettings() {
   document.getElementById('reload-songs-btn').addEventListener('click', reloadSongLibrary);
+
+  document.getElementById('about-contact-copy').addEventListener('click', async () => {
+    const email = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.contactEmail) || '';
+    if (!email) return;
+    try {
+      await navigator.clipboard.writeText(email);
+      showToast(t('toastEmailCopied'));
+    } catch (err) {
+      console.error('Songbook: clipboard copy failed —', err);
+      showToast(t('toastEmailCopyFailed'));
+    }
+  });
 
   const toggle = document.getElementById('theme-toggle');
   toggle.addEventListener('click', () => {

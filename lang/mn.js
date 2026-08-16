@@ -46,7 +46,7 @@ window.SONGBOOK_LANG.mn = {
   installedBadge: "Суулгаж байна",
   installedBadgeDone: "✓ Суулгасан",
   versionTitle: "Хувилбар",
-  versionSub: (v) => `Next Gen Worship ${v} · Stable`,
+  versionSub: (v) => `NGU Worship ${v} · Тогтвортой хувилбар`,
   toastDbSaved: "Дууны сангийн тохиргоог хадгаллаа",
   toastIosHint: 'Хуваалцах товч дээр дараад "Нүүр дэлгэцэнд нэмэх"-ийг сонгоно уу',
   toastPressBackAgain: "Гарахын тулд буцах товчийг дахин дарна уу",
@@ -57,4 +57,7 @@ window.SONGBOOK_LANG.mn = {
   reloadBtnBusy: "Шинэчилж байна…",
   toastLibraryReloaded: "Дуунуудын сан шинэчлэгдлээ",
   toastLibraryReloadFailed: "Шинэчилж чадсангүй — интернэт холболтоо шалгаад дахин оролдоно уу",
+  copyEmailAria: "Имэйл хаягийг хуулах",
+  toastEmailCopied: "Имэйл хаяг хуулагдлаа",
+  toastEmailCopyFailed: "Хуулж чадсангүй — дээрх хаягийг гараар хуулна уу",
 };

@@ -5,7 +5,7 @@
 
 window.SONGBOOK_APP_CONFIG = {
   orgName: "Next Gen Union",
-  contactEmail: "nextgenunion@gmail.com",
+  contactEmail: "uchkabol@gmail.com",
 
   social: {
     facebook: "",

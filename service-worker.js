@@ -1,6 +1,6 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.10';
+const CACHE_VERSION = 'songbook-v0.0.11';
 const APP_SHELL = [
   './',
   './index.html',

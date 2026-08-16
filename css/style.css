@@ -591,6 +591,32 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 .about-contact-btn:not([hidden]) { display: inline-flex; }
 .about-contact-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
+.about-contact-fallback {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.about-contact-fallback:not([hidden]) { display: flex; }
+.about-contact-fallback span {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.about-contact-fallback button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.about-contact-fallback svg { width: 13px; height: 13px; fill: currentColor; }
+
 .scripture-footer {
   margin: 28px 0 8px;
   padding: 0 24px;

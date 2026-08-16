@@ -61,4 +61,7 @@ window.SONGBOOK_LANG.en = {
   reloadBtnBusy: "Refreshing…",
   toastLibraryReloaded: "Song library refreshed",
   toastLibraryReloadFailed: "Couldn't refresh — check your connection and try again",
+  copyEmailAria: "Copy email address",
+  toastEmailCopied: "Email address copied",
+  toastEmailCopyFailed: "Couldn't copy — the address is shown above to copy manually",
 };
