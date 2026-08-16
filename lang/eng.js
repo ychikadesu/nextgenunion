@@ -50,7 +50,7 @@ window.SONGBOOK_LANG.en = {
   installedBadge: "Installing…",
   installedBadgeDone: "✓ Installed",
   versionTitle: "Version",
-  versionSub: (v) => `NGU Worship ${v} · Alpha - Unstable`,
+  versionSub: (v) => `NGU Worship ${v} · Stable Release`,
   toastDbSaved: "Database preference saved",
   toastIosHint: 'Tap Share, then "Add to Home Screen"',
   toastPressBackAgain: "Press back again to exit",
