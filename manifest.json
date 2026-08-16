@@ -1,7 +1,7 @@
 {
-  "name": "NGU Worship",
-  "short_name": "NGU Worship",
-  "description": "An offline-first worship songbook with smart search and chord transpose.",
+  "name": "Next Gen Worship",
+  "short_name": "NGWorship",
+  "description": "Songbook with chords for Adventist people",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
