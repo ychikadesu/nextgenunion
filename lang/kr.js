@@ -56,6 +56,7 @@ window.SONGBOOK_LANG.kr = {
   reloadBtn: "새로고침",
   reloadBtnBusy: "새로고침 중…",
   toastLibraryReloaded: "곡 목록을 새로고침했습니다",
+  toastLibraryOffline: "오프라인 상태입니다 — 이 기기에 저장된 내용을 표시합니다",
   toastLibraryReloadFailed: "새로고침하지 못했습니다 — 인터넷 연결을 확인한 후 다시 시도하세요",
   copyEmailAria: "이메일 주소 복사",
   toastEmailCopied: "이메일 주소가 복사되었습니다",

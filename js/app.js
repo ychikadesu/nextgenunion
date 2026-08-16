@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.11';
+const APP_VERSION = 'v0.0.12';
 
 const state = {
   songs: [],
@@ -95,64 +95,114 @@ async function init() {
 // Adding a song = add its JSON file + one line in the manifest; nothing
 // else in the app needs to change.
 // ---------------------------------------------------------
-async function fetchSongData() {
-  const manifestRes = await fetch('data/songs/manifest.json');
+async function fetchSongData({ forceRefresh = false } = {}) {
+  const headers = forceRefresh ? { 'X-Force-Refresh': '1' } : {};
+  const manifestRes = await fetch('data/songs/manifest.json', { headers });
   if (!manifestRes.ok) throw new Error(`manifest.json responded ${manifestRes.status}`);
   const files = await manifestRes.json();
 
   return Promise.all(files.map(async (file) => {
-    const res = await fetch(`data/songs/${file}`);
+    const res = await fetch(`data/songs/${file}`, { headers });
     if (!res.ok) throw new Error(`${file} responded ${res.status}`);
     return res.json();
   }));
 }
 
+// ---------------------------------------------------------
+// IndexedDB backup: a second, independent offline copy of the song data.
+// Cache Storage (used by the service worker) is the primary mechanism and
+// is enough on its own in normal use — this exists purely as a fallback
+// for the edge case where Cache Storage has been evicted by the OS under
+// storage pressure (a real, documented mobile behavior, and a different
+// eviction policy than IndexedDB's) while the network is also unavailable.
+// ---------------------------------------------------------
+const SONGDB_NAME = 'songbook-db';
+const SONGDB_STORE = 'songs';
+
+function openSongDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('IndexedDB unavailable')); return; }
+    const req = indexedDB.open(SONGDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(SONGDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveSongsToIndexedDb(songs) {
+  try {
+    const db = await openSongDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(SONGDB_STORE, 'readwrite');
+      tx.objectStore(SONGDB_STORE).put(songs, 'all-songs');
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (err) {
+    // Non-fatal — this is a backup layer, not the primary path.
+    console.warn('Songbook: could not save songs to IndexedDB —', err);
+  }
+}
+
+async function loadSongsFromIndexedDb() {
+  const db = await openSongDb();
+  const songs = await new Promise((resolve, reject) => {
+    const tx = db.transaction(SONGDB_STORE, 'readonly');
+    const req = tx.objectStore(SONGDB_STORE).get('all-songs');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
+  return songs;
+}
+
 async function loadSongData() {
   try {
     state.songs = await fetchSongData();
+    saveSongsToIndexedDb(state.songs); // fire-and-forget; don't block on this
   } catch (err) {
-    console.error('Songbook: failed to load song data —', err);
-    // Most likely cause: the app was opened directly from disk (file://),
-    // where browsers block fetch() of local files. Serving it over
-    // http(s) — even just localhost — resolves this.
+    console.error('Songbook: failed to load song data over the network —', err);
+    try {
+      const backup = await loadSongsFromIndexedDb();
+      if (backup && backup.length) {
+        console.warn('Songbook: network/cache load failed — recovered songs from IndexedDB backup.');
+        state.songs = backup;
+        return;
+      }
+    } catch (dbErr) {
+      console.error('Songbook: IndexedDB backup also unavailable —', dbErr);
+    }
+    // Most likely cause if there's no backup either: the app was opened
+    // directly from disk (file://), where browsers block fetch() of local
+    // files. Serving it over http(s) — even just localhost — resolves this.
     state.songs = [];
     state.loadFailed = true;
   }
 }
 
-// Manual "Refresh song library" button: clears any cached copies of the
-// song files first (so the re-fetch actually reaches the network instead
-// of hitting the service worker's cache-first match), then re-fetches
-// through the exact same plain URLs the app normally uses — which also
-// correctly re-populates the cache under those same URLs, so offline
-// access keeps working afterward. Unlike the initial load, a failure here
-// leaves the existing song list alone — no point wiping out songs that
-// were already loaded successfully just because a manual refresh attempt
-// failed (e.g. while offline).
+// Manual "Refresh song library" button: asks the service worker to try the
+// network first (see the X-Force-Refresh handling in service-worker.js),
+// falling back to the existing cached copy if that fails — so a refresh
+// attempted while offline just silently keeps the offline copy intact
+// instead of ever deleting it. The cache is only ever replaced by data
+// that's confirmed to have loaded successfully. Unlike the initial load, a
+// failure here also leaves state.songs alone — no point wiping out songs
+// that were already showing just because this refresh attempt failed.
 async function reloadSongLibrary() {
   const btn = document.getElementById('reload-songs-btn');
   btn.disabled = true;
   btn.textContent = t('reloadBtnBusy');
 
   try {
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      for (const name of cacheNames) {
-        const cache = await caches.open(name);
-        const requests = await cache.keys();
-        for (const req of requests) {
-          if (req.url.includes('/data/songs/')) {
-            await cache.delete(req);
-          }
-        }
-      }
-    }
-
-    const songs = await fetchSongData();
+    const songs = await fetchSongData({ forceRefresh: true });
     state.songs = songs;
     state.loadFailed = false;
+    saveSongsToIndexedDb(state.songs);
     renderSongList();
-    showToast(t('toastLibraryReloaded'));
+    showToast(navigator.onLine ? t('toastLibraryReloaded') : t('toastLibraryOffline'));
   } catch (err) {
     console.error('Songbook: manual song library refresh failed —', err);
     showToast(t('toastLibraryReloadFailed'));

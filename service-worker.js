@@ -1,6 +1,6 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.11';
+const CACHE_VERSION = 'songbook-v0.0.12';
 const APP_SHELL = [
   './',
   './index.html',
@@ -45,10 +45,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Strategy: cache-first for app shell/assets, falling back to network,
-// and updating the cache in the background when the network succeeds.
+// Strategy: cache-first for everything, EXCEPT requests explicitly marked
+// as a manual refresh (X-Force-Refresh header) — those go network-first,
+// updating the cache on success, and fall back to whatever's already
+// cached if the network fails. This means a manual refresh attempted while
+// offline just silently keeps the existing offline copy instead of ever
+// deleting it — the cache is only ever replaced by data that's confirmed
+// to have loaded successfully, never cleared ahead of time "just in case".
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  if (event.request.headers.get('X-Force-Refresh') === '1') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {

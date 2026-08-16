@@ -106,7 +106,6 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: var(--paper);
   color: var(--ink);
   overflow-x: hidden;
 }
@@ -115,6 +114,11 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  background:
+    radial-gradient(1100px 560px at 12% -8%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 105% 5%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 58%),
+    var(--paper);
+  background-attachment: fixed;
 }
 body.nav-hidden {
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
@@ -128,7 +132,9 @@ body.nav-hidden {
   align-items: center;
   margin: 0 -18px;
   padding: calc(env(safe-area-inset-top) + 10px) 18px 10px;
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--line);
   font-family: var(--font-display);
   font-size: 0.95rem;
@@ -421,8 +427,10 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 /* ---------- lyrics + chords ---------- */
 .lyrics-container {
   margin-top: 18px;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
   border-radius: var(--radius-l);
   padding: 24px 20px 28px;
   box-shadow: var(--shadow-1);
@@ -520,8 +528,10 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 /* ---------- settings ---------- */
 .settings-section {
   margin-top: 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
   border-radius: var(--radius-m);
   overflow: hidden;
   box-shadow: var(--shadow-1);
@@ -718,8 +728,10 @@ html[data-theme="dark"] .btn-primary { background: var(--accent); color: var(--p
   left: 0; right: 0; bottom: 0;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--surface);
-  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-top: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
   justify-content: center;
   gap: 64px;
   z-index: 20;
