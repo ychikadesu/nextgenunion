@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.12';
+const APP_VERSION = 'v0.0.13';
 
 const state = {
   songs: [],
@@ -29,27 +29,73 @@ const CHROMATIC_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const CHROMATIC_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 const FLAT_KEYS = new Set(['F','Bb','Eb','Ab','Db','Gb','Dm','Gm','Cm','Fm','Bbm']);
 
-// Social links shown in Settings → About. Leave `url` empty to hide that
-// icon entirely — nothing else needs to change when these are filled in.
-// Icon + label per social platform. The actual URLs live in config.js
-// (window.SONGBOOK_APP_CONFIG.social) — edit that file, not this list.
+// ---------------------------------------------------------
+// Icons: every icon the app uses lives as its own file under
+// icons/svg/ — this loader fetches each one and injects its markup into
+// the matching <svg data-icon="…"> placeholder. To use a different icon,
+// replace (or edit) the file in icons/svg/ — nothing here needs to change.
+// A replacement file's own viewBox/attributes are honored, so a
+// differently-proportioned icon still renders correctly.
+// ---------------------------------------------------------
+const ICON_FILES = {
+  'brand-mark': 'icons/svg/brand-music-note.svg',
+  'search': 'icons/svg/search.svg',
+  'back-arrow': 'icons/svg/back-arrow.svg',
+  'contact-mail': 'icons/svg/mail-contact.svg',
+  'copy': 'icons/svg/copy.svg',
+  'nav-songs': 'icons/svg/nav-songs-bookmark.svg',
+  'nav-settings': 'icons/svg/nav-settings-gear.svg',
+  'social-facebook': 'icons/svg/social-facebook.svg',
+  'social-youtube': 'icons/svg/social-youtube.svg',
+  'social-instagram': 'icons/svg/social-instagram.svg',
+  'social-website': 'icons/svg/social-website.svg',
+};
+
+const iconFileCache = new Map();
+function loadIconFile(path) {
+  if (!iconFileCache.has(path)) {
+    iconFileCache.set(path, fetch(path).then((res) => {
+      if (!res.ok) throw new Error(`${path} responded ${res.status}`);
+      return res.text();
+    }));
+  }
+  return iconFileCache.get(path);
+}
+
+async function injectIcon(el) {
+  const name = el.dataset.icon;
+  const path = ICON_FILES[name];
+  if (!path) return;
+  try {
+    const svgText = await loadIconFile(path);
+    const src = new DOMParser().parseFromString(svgText, 'image/svg+xml').querySelector('svg');
+    if (!src) throw new Error('no <svg> root found');
+    // Adopt the file's own viewBox/attributes (so a replacement icon with
+    // different proportions still renders correctly), but never touch
+    // class/id — those belong to the placeholder markup, not the icon file.
+    Array.from(src.attributes).forEach((attr) => {
+      if (attr.name === 'class' || attr.name === 'id') return;
+      el.setAttribute(attr.name, attr.value);
+    });
+    el.innerHTML = src.innerHTML;
+  } catch (err) {
+    console.warn(`Songbook: could not load icon "${name}" from ${path} —`, err);
+  }
+}
+
+function initIcons(root = document) {
+  return Promise.all(Array.from(root.querySelectorAll('[data-icon]')).map(injectIcon));
+}
+
+// Social links shown in Settings → About. Leave `url` empty in config.js to
+// hide that icon entirely — nothing else needs to change when these are
+// filled in. Each icon's artwork lives in icons/svg/ (see ICON_FILES above);
+// this table just maps a platform to its label and icon file key.
 const SOCIAL_ICONS = {
-  facebook: {
-    label: 'Facebook',
-    icon: '<svg viewBox="0 0 24 24"><path d="M13.5 21v-7.5H16l.5-3H13.5V8.2c0-.87.24-1.46 1.5-1.46H16.6V4.14C16.3 4.1 15.3 4 14.1 4c-2.5 0-4.2 1.53-4.2 4.33v2.17H7.4v3h2.5V21h3.6z"/></svg>',
-  },
-  youtube: {
-    label: 'YouTube',
-    icon: '<svg viewBox="0 0 24 24"><path d="M21.6 7.2s-.2-1.5-.85-2.15c-.8-.85-1.7-.85-2.1-.9C15.8 4 12 4 12 4h0s-3.8 0-6.65.15c-.4.05-1.3.05-2.1.9C2.6 5.7 2.4 7.2 2.4 7.2S2.2 9 2.2 10.75v1.5C2.2 14 2.4 15.8 2.4 15.8s.2 1.5.85 2.15c.8.85 1.85.82 2.3.91 1.7.16 7.2.2 7.45.2 0 0 3.8 0 6.65-.16.4-.05 1.3-.05 2.1-.9.65-.65.85-2.15.85-2.15s.2-1.8.2-3.55v-1.5c0-1.75-.2-3.55-.2-3.55zM9.95 14.6V8.9l5.4 2.85-5.4 2.85z"/></svg>',
-  },
-  instagram: {
-    label: 'Instagram',
-    icon: '<svg viewBox="0 0 24 24"><path d="M12 2c-2.7 0-3.05.01-4.12.06-1.06.05-1.79.22-2.43.47-.66.26-1.22.6-1.77 1.16-.56.55-.9 1.11-1.16 1.77-.25.64-.42 1.37-.47 2.43C2 8.95 2 9.3 2 12s.01 3.05.06 4.12c.05 1.06.22 1.79.47 2.43.26.66.6 1.22 1.16 1.77.55.56 1.11.9 1.77 1.16.64.25 1.37.42 2.43.47C8.95 22 9.3 22 12 22s3.05-.01 4.12-.06c1.06-.05 1.79-.22 2.43-.47.66-.26 1.22-.6 1.77-1.16.56-.55.9-1.11 1.16-1.77.25-.64.42-1.37.47-2.43.05-1.07.06-1.42.06-4.12s-.01-3.05-.06-4.12c-.05-1.06-.22-1.79-.47-2.43-.26-.66-.6-1.22-1.16-1.77-.55-.56-1.11-.9-1.77-1.16-.64-.25-1.37-.42-2.43-.47C15.05 2.01 14.7 2 12 2zm0 1.8c2.65 0 2.97.01 4.02.06.97.04 1.5.2 1.85.34.46.18.79.4 1.14.75.35.35.57.68.75 1.14.14.35.3.88.34 1.85.05 1.05.06 1.37.06 4.02s-.01 2.97-.06 4.02c-.04.97-.2 1.5-.34 1.85-.18.46-.4.79-.75 1.14-.35.35-.68.57-1.14.75-.35.14-.88.3-1.85.34-1.05.05-1.37.06-4.02.06s-2.97-.01-4.02-.06c-.97-.04-1.5-.2-1.85-.34-.46-.18-.79-.4-1.14-.75-.35-.35-.57-.68-.75-1.14-.14-.35-.3-.88-.34-1.85C3.8 14.97 3.8 14.65 3.8 12s.01-2.97.06-4.02c.04-.97.2-1.5.34-1.85.18-.46.4-.79.75-1.14.35-.35.68-.57 1.14-.75.35-.14.88-.3 1.85-.34C9.03 3.8 9.35 3.8 12 3.8zm0 3.05a5.15 5.15 0 100 10.3 5.15 5.15 0 000-10.3zm0 8.5a3.35 3.35 0 110-6.7 3.35 3.35 0 010 6.7zm5.35-8.7a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"/></svg>',
-  },
-  website: {
-    label: 'Website',
-    icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 6H15.7a15.6 15.6 0 00-1.38-4.02A8.03 8.03 0 0118.93 8zM12 4.06c.8 1.1 1.5 2.5 1.95 3.94h-3.9c.45-1.44 1.15-2.84 1.95-3.94zM4.26 14a8.1 8.1 0 010-4h3.6a16.7 16.7 0 000 4h-3.6zm.81 2h3.23a15.6 15.6 0 001.38 4.02A8.03 8.03 0 015.07 16zm3.23-8H5.07a8.03 8.03 0 014.6-4.02A15.6 15.6 0 008.3 8zM12 19.94c-.8-1.1-1.5-2.5-1.95-3.94h3.9c-.45 1.44-1.15 2.84-1.95 3.94zM14.36 14H9.64a14.8 14.8 0 010-4h4.72a14.8 14.8 0 010 4zm.02 5.98A15.6 15.6 0 0015.76 16h3.17a8.03 8.03 0 01-4.55 3.98zM16.14 14a16.7 16.7 0 000-4h3.6a8.1 8.1 0 010 4h-3.6z"/></svg>',
-  },
+  facebook: { label: 'Facebook', icon: 'social-facebook' },
+  youtube: { label: 'YouTube', icon: 'social-youtube' },
+  instagram: { label: 'Instagram', icon: 'social-instagram' },
+  website: { label: 'Website', icon: 'social-website' },
 };
 
 function renderSocialLinks() {
@@ -58,8 +104,9 @@ function renderSocialLinks() {
   const social = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.social) || {};
   el.innerHTML = Object.keys(SOCIAL_ICONS)
     .filter(key => social[key])
-    .map(key => `<a href="${escapeHtml(social[key])}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(SOCIAL_ICONS[key].label)}">${SOCIAL_ICONS[key].icon}</a>`)
+    .map(key => `<a href="${escapeHtml(social[key])}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(SOCIAL_ICONS[key].label)}"><svg data-icon="${SOCIAL_ICONS[key].icon}" viewBox="0 0 24 24"></svg></a>`)
     .join('');
+  initIcons(el);
 }
 
 function t(key, ...args) {
@@ -75,6 +122,7 @@ function t(key, ...args) {
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+  initIcons();
   initSplash();
   loadPrefs();
   bindNav();
@@ -369,26 +417,20 @@ function applyLanguage() {
 
   document.getElementById('empty-state').textContent = t('emptyState');
   document.getElementById('about-version-line').textContent = t('versionSub', APP_VERSION);
+  document.getElementById('scripture-verse-text').textContent = `«${t('scriptureVerse')}»`;
+  document.getElementById('scripture-verse-ref').textContent = t('scriptureRef');
 
   const appConfig = window.SONGBOOK_APP_CONFIG || {};
   const orgName = appConfig.orgName || '';
-  document.getElementById('about-org').textContent = orgName;
   document.getElementById('about-copyright').textContent =
     `© ${new Date().getFullYear()} ${orgName}. All rights reserved.`;
 
-  const contactBtn = document.getElementById('about-contact-btn');
-  const contactFallback = document.getElementById('about-contact-fallback');
-  if (appConfig.contactEmail) {
-    contactBtn.hidden = false;
-    contactBtn.href = `mailto:${appConfig.contactEmail}`;
-    contactFallback.hidden = false;
-    document.getElementById('about-contact-email').textContent = appConfig.contactEmail;
-  } else {
-    contactBtn.hidden = true;
-    contactFallback.hidden = true;
-  }
   document.getElementById('t-contactBtn').textContent = t('contactBtn');
   document.getElementById('about-contact-copy').setAttribute('aria-label', t('copyEmailAria'));
+  if (appConfig.contactEmail) {
+    document.getElementById('about-contact-email').textContent = appConfig.contactEmail;
+  }
+  resetContactUI();
 
   const reloadBtn = document.getElementById('reload-songs-btn');
   if (!reloadBtn.disabled) reloadBtn.textContent = t('reloadBtn');
@@ -423,6 +465,7 @@ function showPage(name, opts = {}) {
     document.querySelector('.nav-btn[data-nav="songs"]').classList.add('is-active');
   } else if (name === 'settings') {
     document.querySelector('.nav-btn[data-nav="settings"]').classList.add('is-active');
+    resetContactUI();
   }
 
   // The song view is a focused reading mode: hide the bottom tab bar so
@@ -782,19 +825,52 @@ function renderLyrics() {
 // ---------------------------------------------------------
 // Settings: theme, UI language, database select, install
 // ---------------------------------------------------------
+async function copyContactEmail(opts = {}) {
+  const { silent = false } = opts;
+  const email = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.contactEmail) || '';
+  if (!email) return;
+  try {
+    await navigator.clipboard.writeText(email);
+    if (!silent) showToast(t('toastEmailCopied'));
+  } catch (err) {
+    console.error('Songbook: clipboard copy failed —', err);
+    if (!silent) showToast(t('toastEmailCopyFailed'));
+  }
+}
+
+// Puts the contact button/email-fallback back to its starting state: button
+// visible, fallback hidden. Called on language refresh and every time the
+// Settings page is (re)opened, so the button reliably comes back after
+// switching pages, reloading, or reopening the app — even though within a
+// single visit to Settings it disappears the moment it's clicked.
+function resetContactUI() {
+  const contactBtn = document.getElementById('about-contact-btn');
+  const contactFallback = document.getElementById('about-contact-fallback');
+  if (!contactBtn || !contactFallback) return;
+  const email = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.contactEmail) || '';
+  if (!email) {
+    contactBtn.hidden = true;
+    contactFallback.hidden = true;
+    return;
+  }
+  contactBtn.href = `mailto:${email}`;
+  contactBtn.hidden = false;
+  contactFallback.hidden = true;
+}
+
 function bindSettings() {
   document.getElementById('reload-songs-btn').addEventListener('click', reloadSongLibrary);
 
-  document.getElementById('about-contact-copy').addEventListener('click', async () => {
-    const email = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.contactEmail) || '';
-    if (!email) return;
-    try {
-      await navigator.clipboard.writeText(email);
-      showToast(t('toastEmailCopied'));
-    } catch (err) {
-      console.error('Songbook: clipboard copy failed —', err);
-      showToast(t('toastEmailCopyFailed'));
-    }
+  document.getElementById('about-contact-btn').addEventListener('click', () => {
+    // Let the mailto: link proceed as normal (opens the person's mail app,
+    // where available) — this fires alongside that, not instead of it.
+    copyContactEmail({ silent: true });
+    document.getElementById('about-contact-btn').hidden = true;
+    document.getElementById('about-contact-fallback').hidden = false;
+  });
+
+  document.getElementById('about-contact-copy').addEventListener('click', () => {
+    copyContactEmail();
   });
 
   const toggle = document.getElementById('theme-toggle');

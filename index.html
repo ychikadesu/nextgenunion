@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NGU Worship</title>
+<title>Next Gen Worship</title>
 <meta name="description" content="Офлайнаар ажилладаг дууны ном / An offline-first worship songbook.">
 <meta name="theme-color" content="#1F2A44" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F3F3F1" media="(prefers-color-scheme: light)">
@@ -13,7 +13,8 @@
 <link rel="apple-touch-icon" href="icons/app-icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NGU Worship">
+<!-- Shorter name for the phone/desktop home-screen label -->
+<meta name="apple-mobile-web-app-title" content="NGWorship">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,13 +32,13 @@
 <main id="page-songs" class="page" data-page="songs">
   <header class="page-header">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3v11.55A3.5 3.5 0 1020 17V6.83l-8 1.6v9.12A3.5 3.5 0 1010.5 20V5.4L19 3z"/></svg>
+      <svg class="brand-mark" data-icon="brand-mark" viewBox="0 0 24 24" aria-hidden="true"></svg>
       <h1 id="t-appTitle">Songbook</h1>
     </div>
   </header>
 
   <div class="search-bar">
-    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4a6 6 0 104.472 10.03l4.75 4.749a1 1 0 001.415-1.414l-4.75-4.75A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/></svg>
+    <svg class="search-icon" data-icon="search" viewBox="0 0 24 24" aria-hidden="true"></svg>
     <input id="search-input" type="search" inputmode="search" autocomplete="off">
   </div>
 
@@ -62,12 +63,12 @@
 <!-- ===== SONG VIEW PAGE ===== -->
 <main id="page-song-view" class="page" data-page="song-view" hidden>
   <div id="song-view-topbar" class="song-view-topbar">
-    <span id="t-topbarAppName">NGU Worship</span>
+    <span id="t-topbarAppName">Next Gen Worship</span>
   </div>
 
   <header class="song-view-header">
     <button id="back-btn" class="icon-btn" aria-label="Back to song list">
-      <svg viewBox="0 0 24 24"><path d="M15.5 4.5a1 1 0 010 1.414L9.914 11.5H19a1 1 0 110 2H9.914l5.586 5.586a1 1 0 11-1.414 1.414l-7-7a1 1 0 010-1.414l7-7a1 1 0 011.414 0z"/></svg>
+      <svg data-icon="back-arrow" viewBox="0 0 24 24"></svg>
     </button>
     <div class="song-view-title">
       <span id="sv-number" class="sv-number"></span>
@@ -186,17 +187,16 @@
     <div class="about-block">
       <img src="icons/about-logo.png" alt="" class="about-logo">
       <p class="about-label" id="t-versionTitle">Version</p>
-      <p class="about-appname" id="about-version-line">NGU Worship v0.0.5 · Stable Release</p>
-      <p class="about-org" id="about-org"></p>
+      <p class="about-appname" id="about-version-line">Next Gen Worship v0.0.5 · Stable Release</p>
       <p class="about-copyright" id="about-copyright"></p>
-      <a class="about-contact-btn" id="about-contact-btn" href="#" hidden>
-        <svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v.01L12 12l8-5.99V6H4zm16 2.24l-7.4 5.55a1 1 0 01-1.2 0L4 8.24V18h16V8.24z"/></svg>
-        <span id="t-contactBtn">Contact us</span>
+      <a class="about-contact-btn" id="about-contact-btn" href="#">
+        <svg data-icon="contact-mail" viewBox="0 0 24 24"></svg>
+        <span id="t-contactBtn">Send feedback</span>
       </a>
       <div class="about-contact-fallback" id="about-contact-fallback" hidden>
         <span id="about-contact-email"></span>
         <button type="button" id="about-contact-copy" aria-label="Copy email address">
-          <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg>
+          <svg data-icon="copy" viewBox="0 0 24 24"></svg>
         </button>
       </div>
       <div class="about-social" id="about-social"></div>
@@ -204,8 +204,8 @@
   </section>
 
   <blockquote class="scripture-footer">
-    <p>«Хэн ч чамайг залуу хүн хэмээн дорд бүү үзэг. Харин чи итгэгч хүмүүст үг, зан байдал, хайр, итгэл хийгээд цэвэр ариун байдлаараа үлгэр дуурайл бол.»</p>
-    <cite>1 Тимот 4:12</cite>
+    <p id="scripture-verse-text"></p>
+    <cite id="scripture-verse-ref"></cite>
   </blockquote>
 </main>
 
@@ -213,11 +213,11 @@
 <!-- ===== BOTTOM NAVIGATION ===== -->
 <nav id="bottom-nav" class="bottom-nav" aria-label="Main navigation">
   <button class="nav-btn is-active" data-nav="songs">
-    <svg viewBox="0 0 24 24"><path d="M5 3a1 1 0 00-1 1v16a1 1 0 001.5.866L12 17.5l6.5 3.366A1 1 0 0020 20V4a1 1 0 00-1-1H5z"/></svg>
+    <svg data-icon="nav-songs" viewBox="0 0 24 24"></svg>
     <span id="t-navSongs">Songs</span>
   </button>
   <button class="nav-btn" data-nav="settings">
-    <svg viewBox="0 0 24 24"><path d="M19.4 13a7.97 7.97 0 000-2l2.1-1.65a1 1 0 00.24-1.28l-2-3.46a1 1 0 00-1.22-.44l-2.48 1a8.05 8.05 0 00-1.73-1l-.38-2.64A1 1 0 0013 0h-2a1 1 0 00-1 .87L9.62 3.5a8.05 8.05 0 00-1.73 1l-2.48-1a1 1 0 00-1.22.44l-2 3.46a1 1 0 00.24 1.28L4.6 11a7.97 7.97 0 000 2l-2.1 1.65a1 1 0 00-.24 1.28l2 3.46a1 1 0 001.22.44l2.48-1a8.05 8.05 0 001.73 1l.38 2.64a1 1 0 001 .87h2a1 1 0 001-.87l.38-2.64a8.05 8.05 0 001.73-1l2.48 1a1 1 0 001.22-.44l2-3.46a1 1 0 00-.24-1.28L19.4 13zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/></svg>
+    <svg data-icon="nav-settings" viewBox="0 0 24 24"></svg>
     <span id="t-navSettings">Settings</span>
   </button>
 </nav>

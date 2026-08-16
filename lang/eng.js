@@ -8,7 +8,7 @@ window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
 window.SONGBOOK_LANG.en = {
   meta: { name: "English" },
 
-  appTitle: "NGU Worship",
+  appTitle: "Next Gen Worship",
   searchPlaceholder: "Search title, number, or a lyric…",
   sortByAlpha: "Alphabet",
   sortByNumber: "Number",
@@ -50,11 +50,11 @@ window.SONGBOOK_LANG.en = {
   installedBadge: "Installing…",
   installedBadgeDone: "✓ Installed",
   versionTitle: "Version",
-  versionSub: (v) => `NGU Worship ${v} · Stable Release`,
+  versionSub: (v) => `Next Gen Worship ${v} · Stable Release`,
   toastDbSaved: "Database preference saved",
   toastIosHint: 'Tap Share, then "Add to Home Screen"',
   toastPressBackAgain: "Press back again to exit",
-  contactBtn: "Contact us",
+  contactBtn: "Send feedback",
   reloadTitle: "Refresh song library",
   reloadSub: "Re-download all songs — use this if something looks out of date",
   reloadBtn: "Refresh",
@@ -65,4 +65,6 @@ window.SONGBOOK_LANG.en = {
   copyEmailAria: "Copy email address",
   toastEmailCopied: "Email address copied",
   toastEmailCopyFailed: "Couldn't copy — the address is shown above to copy manually",
+  scriptureVerse: "Don't let anyone look down on you because you are young, but set an example for the believers in speech, in conduct, in love, in faith and in purity.",
+  scriptureRef: "1 Timothy 4:12",
 };

@@ -86,8 +86,14 @@ html[data-theme="dark"][data-accent="cinnamon"]   { --accent: #D9A94B; --accent-
   pointer-events: none;
 }
 #splash-logo {
-  width: 120px;
-  height: 120px;
+  /* Show the logo at its own aspect ratio instead of stretching it to a
+     fixed box — width/height here are just a max footprint, whatever the
+     source image's real proportions are (square, portrait, landscape…). */
+  width: auto;
+  height: auto;
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
   border-radius: var(--radius-l);
   animation: splash-pop 1s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
@@ -132,7 +138,7 @@ body.nav-hidden {
   align-items: center;
   margin: 0 -18px;
   padding: calc(env(safe-area-inset-top) + 10px) 18px 10px;
-  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  background: color-mix(in srgb, var(--paper) 42%, transparent);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--line);
@@ -572,8 +578,7 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 .about-logo { width: 64px; height: 64px; border-radius: var(--radius-m); margin-bottom: 12px; }
 .about-label { margin: 0; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
 .about-appname { margin: 3px 0 0; font-family: var(--font-display); font-size: 1.02rem; font-weight: 600; color: var(--ink); }
-.about-org { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink-soft); }
-.about-copyright { margin: 10px 0 0; font-size: 0.76rem; color: var(--ink-faint); }
+.about-copyright { margin: 8px 0 0; font-size: 0.86rem; color: var(--ink-soft); }
 .about-social { display: flex; justify-content: center; gap: 14px; margin-top: 16px; }
 .about-social:empty { margin-top: 0; }
 .about-social a {
@@ -728,7 +733,7 @@ html[data-theme="dark"] .btn-primary { background: var(--accent); color: var(--p
   left: 0; right: 0; bottom: 0;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 42%, transparent);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   border-top: 1px solid color-mix(in srgb, var(--line) 65%, transparent);

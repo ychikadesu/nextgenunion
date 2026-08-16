@@ -4,7 +4,7 @@ window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
 window.SONGBOOK_LANG.kr = {
   meta: { name: "한국어" },
 
-  appTitle: "NGU Worship",
+  appTitle: "Next Gen Worship",
   searchPlaceholder: "제목, 번호 또는 가사로 검색…",
   sortByAlpha: "가나다순",
   sortByNumber: "번호순",
@@ -46,11 +46,11 @@ window.SONGBOOK_LANG.kr = {
   installedBadge: "설치 중…",
   installedBadgeDone: "✓ 설치됨",
   versionTitle: "버전",
-  versionSub: (v) => `NGU Worship ${v} · 안정 버전`,
+  versionSub: (v) => `Next Gen Worship ${v} · 안정 버전`,
   toastDbSaved: "찬양집 설정이 저장되었습니다",
   toastIosHint: '공유 버튼을 누른 후 "홈 화면에 추가"를 선택하세요',
   toastPressBackAgain: "종료하려면 뒤로 버튼을 한 번 더 누르세요",
-  contactBtn: "문의하기",
+  contactBtn: "피드백 보내기",
   reloadTitle: "곡 목록 새로고침",
   reloadSub: "모든 곡을 다시 다운로드합니다 — 내용이 오래된 것 같을 때 사용하세요",
   reloadBtn: "새로고침",
@@ -61,4 +61,6 @@ window.SONGBOOK_LANG.kr = {
   copyEmailAria: "이메일 주소 복사",
   toastEmailCopied: "이메일 주소가 복사되었습니다",
   toastEmailCopyFailed: "복사하지 못했습니다 — 위 주소를 직접 복사해 주세요",
+  scriptureVerse: "누구든지 네 연소함을 업신여기지 못하게 하고 오직 말과 행실과 사랑과 믿음과 정절에 있어서 믿는 자에게 본이 되어",
+  scriptureRef: "디모데전서 4:12",
 };

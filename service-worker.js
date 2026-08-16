@@ -1,6 +1,6 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.12';
+const CACHE_VERSION = 'songbook-v0.0.13';
 const APP_SHELL = [
   './',
   './index.html',
@@ -19,6 +19,18 @@ const APP_SHELL = [
   './icons/app-icon-maskable-512.png',
   './icons/splash-logo.png',
   './icons/about-logo.png',
+
+  './icons/svg/brand-music-note.svg',
+  './icons/svg/search.svg',
+  './icons/svg/back-arrow.svg',
+  './icons/svg/mail-contact.svg',
+  './icons/svg/copy.svg',
+  './icons/svg/nav-songs-bookmark.svg',
+  './icons/svg/nav-settings-gear.svg',
+  './icons/svg/social-facebook.svg',
+  './icons/svg/social-youtube.svg',
+  './icons/svg/social-instagram.svg',
+  './icons/svg/social-website.svg',
 ];
 
 self.addEventListener('install', (event) => {

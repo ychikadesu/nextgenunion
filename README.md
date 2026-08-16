@@ -1,4 +1,4 @@
-# Songbook — Worship Song App (v0.0.1)
+# Next Gen Worship — Worship Song App (v0.0.13)
 
 An offline-first worship songbook PWA. Static HTML/CSS/JS, no build step, no
 backend — built to run on GitHub Pages and install like a native app.
@@ -30,7 +30,7 @@ data/songs/           One JSON file per song + manifest.json listing them
 lang/*.js         Interface text — one file per language (config.js + eng.js/mn.js/kr.js)
 manifest.json         PWA manifest
 service-worker.js     Offline caching (cache-first w/ background refresh)
-icons/                App icons and logos
+icons/                App icons, logos, and icons/svg/ — one SVG file per UI icon
 ```
 
 ## Why song data moved to one JSON file per song
@@ -48,6 +48,18 @@ be served over `http://` or `https://`** — even `http://localhost` is
 enough — for the song list to load at all. This same requirement already
 applied to installability and offline support, so it isn't a new category of
 limitation, just a stricter version of one that was already there.
+
+## Replacing an icon
+
+Every icon the app uses lives as its own file under `icons/svg/` (search,
+back arrow, contact envelope, social icons, etc — names are descriptive, e.g.
+`nav-songs-bookmark.svg`). To swap one out, just replace that file's content
+with a different SVG — the app fetches and injects each icon at runtime, so
+no code changes are needed, and a replacement with a different `viewBox`
+still renders correctly. The splash-screen and about-page logos
+(`icons/splash-logo.png`, `icons/about-logo.png`) are separate PNGs and can
+be swapped the same simple way — the splash logo in particular is shown at
+its own aspect ratio, never stretched, whatever size image you give it.
 
 ## Editing the song list
 
