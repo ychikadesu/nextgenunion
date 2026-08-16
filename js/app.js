@@ -1,14 +1,16 @@
 // =========================================================
 // Songbook — app.js
-// Version 0.0.1: official songs, search, sort, chord transpose,
-// light/dark mode, settings, PWA install, EN/MN interface language.
-// Data-driven: all song content lives in /data/songs.js (window.SONGBOOK_DATA).
+// Data-driven: song content lives as one JSON file per song under
+// /data/songs/ (see data/songs/manifest.json), loaded at runtime by
+// loadSongData(). Adding a song = add a JSON file + one line in the
+// manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.5';
+const APP_VERSION = 'v0.0.10';
 
 const state = {
-  songs: (window.SONGBOOK_DATA || []),
+  songs: [],
+  loadFailed: false,
   sortBy: 'num',       // 'alpha' | 'num'
   sortOrder: 'asc',     // 'asc' | 'desc'
   query: '',
@@ -27,8 +29,41 @@ const CHROMATIC_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const CHROMATIC_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 const FLAT_KEYS = new Set(['F','Bb','Eb','Ab','Db','Gb','Dm','Gm','Cm','Fm','Bbm']);
 
+// Social links shown in Settings → About. Leave `url` empty to hide that
+// icon entirely — nothing else needs to change when these are filled in.
+// Icon + label per social platform. The actual URLs live in config.js
+// (window.SONGBOOK_APP_CONFIG.social) — edit that file, not this list.
+const SOCIAL_ICONS = {
+  facebook: {
+    label: 'Facebook',
+    icon: '<svg viewBox="0 0 24 24"><path d="M13.5 21v-7.5H16l.5-3H13.5V8.2c0-.87.24-1.46 1.5-1.46H16.6V4.14C16.3 4.1 15.3 4 14.1 4c-2.5 0-4.2 1.53-4.2 4.33v2.17H7.4v3h2.5V21h3.6z"/></svg>',
+  },
+  youtube: {
+    label: 'YouTube',
+    icon: '<svg viewBox="0 0 24 24"><path d="M21.6 7.2s-.2-1.5-.85-2.15c-.8-.85-1.7-.85-2.1-.9C15.8 4 12 4 12 4h0s-3.8 0-6.65.15c-.4.05-1.3.05-2.1.9C2.6 5.7 2.4 7.2 2.4 7.2S2.2 9 2.2 10.75v1.5C2.2 14 2.4 15.8 2.4 15.8s.2 1.5.85 2.15c.8.85 1.85.82 2.3.91 1.7.16 7.2.2 7.45.2 0 0 3.8 0 6.65-.16.4-.05 1.3-.05 2.1-.9.65-.65.85-2.15.85-2.15s.2-1.8.2-3.55v-1.5c0-1.75-.2-3.55-.2-3.55zM9.95 14.6V8.9l5.4 2.85-5.4 2.85z"/></svg>',
+  },
+  instagram: {
+    label: 'Instagram',
+    icon: '<svg viewBox="0 0 24 24"><path d="M12 2c-2.7 0-3.05.01-4.12.06-1.06.05-1.79.22-2.43.47-.66.26-1.22.6-1.77 1.16-.56.55-.9 1.11-1.16 1.77-.25.64-.42 1.37-.47 2.43C2 8.95 2 9.3 2 12s.01 3.05.06 4.12c.05 1.06.22 1.79.47 2.43.26.66.6 1.22 1.16 1.77.55.56 1.11.9 1.77 1.16.64.25 1.37.42 2.43.47C8.95 22 9.3 22 12 22s3.05-.01 4.12-.06c1.06-.05 1.79-.22 2.43-.47.66-.26 1.22-.6 1.77-1.16.56-.55.9-1.11 1.16-1.77.25-.64.42-1.37.47-2.43.05-1.07.06-1.42.06-4.12s-.01-3.05-.06-4.12c-.05-1.06-.22-1.79-.47-2.43-.26-.66-.6-1.22-1.16-1.77-.55-.56-1.11-.9-1.77-1.16-.64-.25-1.37-.42-2.43-.47C15.05 2.01 14.7 2 12 2zm0 1.8c2.65 0 2.97.01 4.02.06.97.04 1.5.2 1.85.34.46.18.79.4 1.14.75.35.35.57.68.75 1.14.14.35.3.88.34 1.85.05 1.05.06 1.37.06 4.02s-.01 2.97-.06 4.02c-.04.97-.2 1.5-.34 1.85-.18.46-.4.79-.75 1.14-.35.35-.68.57-1.14.75-.35.14-.88.3-1.85.34-1.05.05-1.37.06-4.02.06s-2.97-.01-4.02-.06c-.97-.04-1.5-.2-1.85-.34-.46-.18-.79-.4-1.14-.75-.35-.35-.57-.68-.75-1.14-.14-.35-.3-.88-.34-1.85C3.8 14.97 3.8 14.65 3.8 12s.01-2.97.06-4.02c.04-.97.2-1.5.34-1.85.18-.46.4-.79.75-1.14.35-.35.68-.57 1.14-.75.35-.14.88-.3 1.85-.34C9.03 3.8 9.35 3.8 12 3.8zm0 3.05a5.15 5.15 0 100 10.3 5.15 5.15 0 000-10.3zm0 8.5a3.35 3.35 0 110-6.7 3.35 3.35 0 010 6.7zm5.35-8.7a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"/></svg>',
+  },
+  website: {
+    label: 'Website',
+    icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 6H15.7a15.6 15.6 0 00-1.38-4.02A8.03 8.03 0 0118.93 8zM12 4.06c.8 1.1 1.5 2.5 1.95 3.94h-3.9c.45-1.44 1.15-2.84 1.95-3.94zM4.26 14a8.1 8.1 0 010-4h3.6a16.7 16.7 0 000 4h-3.6zm.81 2h3.23a15.6 15.6 0 001.38 4.02A8.03 8.03 0 015.07 16zm3.23-8H5.07a8.03 8.03 0 014.6-4.02A15.6 15.6 0 008.3 8zM12 19.94c-.8-1.1-1.5-2.5-1.95-3.94h3.9c-.45 1.44-1.15 2.84-1.95 3.94zM14.36 14H9.64a14.8 14.8 0 010-4h4.72a14.8 14.8 0 010 4zm.02 5.98A15.6 15.6 0 0015.76 16h3.17a8.03 8.03 0 01-4.55 3.98zM16.14 14a16.7 16.7 0 000-4h3.6a8.1 8.1 0 010 4h-3.6z"/></svg>',
+  },
+};
+
+function renderSocialLinks() {
+  const el = document.getElementById('about-social');
+  if (!el) return;
+  const social = (window.SONGBOOK_APP_CONFIG && window.SONGBOOK_APP_CONFIG.social) || {};
+  el.innerHTML = Object.keys(SOCIAL_ICONS)
+    .filter(key => social[key])
+    .map(key => `<a href="${escapeHtml(social[key])}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(SOCIAL_ICONS[key].label)}">${SOCIAL_ICONS[key].icon}</a>`)
+    .join('');
+}
+
 function t(key, ...args) {
-  const dict = (window.SONGBOOK_I18N && window.SONGBOOK_I18N[state.lang]) || {};
+  const dict = (window.SONGBOOK_LANG && window.SONGBOOK_LANG[state.lang]) || {};
   const entry = dict[key];
   if (typeof entry === 'function') return entry(...args);
   return entry !== undefined ? entry : key;
@@ -39,21 +74,132 @@ function t(key, ...args) {
 // ---------------------------------------------------------
 document.addEventListener('DOMContentLoaded', init);
 
-function init() {
+async function init() {
   initSplash();
   loadPrefs();
   bindNav();
   bindSongsPage();
   bindSongView();
   bindSettings();
-  applyI18n();
+  applyLanguage();
   registerServiceWorker();
   setupInstallPrompt();
+  initHistoryNav();
 
-  if (!state.songs.length) {
-    console.warn('Songbook: no song data found on window.SONGBOOK_DATA — check that data/songs.js loaded before app.js.');
+  await loadSongData();
+  applyLanguage(); // re-run so the results count reflects the loaded songs
+}
+
+// ---------------------------------------------------------
+// Song data: one JSON file per song, listed in data/songs/manifest.json.
+// Adding a song = add its JSON file + one line in the manifest; nothing
+// else in the app needs to change.
+// ---------------------------------------------------------
+async function fetchSongData() {
+  const manifestRes = await fetch('data/songs/manifest.json');
+  if (!manifestRes.ok) throw new Error(`manifest.json responded ${manifestRes.status}`);
+  const files = await manifestRes.json();
+
+  return Promise.all(files.map(async (file) => {
+    const res = await fetch(`data/songs/${file}`);
+    if (!res.ok) throw new Error(`${file} responded ${res.status}`);
+    return res.json();
+  }));
+}
+
+async function loadSongData() {
+  try {
+    state.songs = await fetchSongData();
+  } catch (err) {
+    console.error('Songbook: failed to load song data —', err);
+    // Most likely cause: the app was opened directly from disk (file://),
+    // where browsers block fetch() of local files. Serving it over
+    // http(s) — even just localhost — resolves this.
+    state.songs = [];
+    state.loadFailed = true;
   }
-  renderSongList();
+}
+
+// Manual "Refresh song library" button: clears any cached copies of the
+// song files first (so the re-fetch actually reaches the network instead
+// of hitting the service worker's cache-first match), then re-fetches
+// through the exact same plain URLs the app normally uses — which also
+// correctly re-populates the cache under those same URLs, so offline
+// access keeps working afterward. Unlike the initial load, a failure here
+// leaves the existing song list alone — no point wiping out songs that
+// were already loaded successfully just because a manual refresh attempt
+// failed (e.g. while offline).
+async function reloadSongLibrary() {
+  const btn = document.getElementById('reload-songs-btn');
+  btn.disabled = true;
+  btn.textContent = t('reloadBtnBusy');
+
+  try {
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        const cache = await caches.open(name);
+        const requests = await cache.keys();
+        for (const req of requests) {
+          if (req.url.includes('/data/songs/')) {
+            await cache.delete(req);
+          }
+        }
+      }
+    }
+
+    const songs = await fetchSongData();
+    state.songs = songs;
+    state.loadFailed = false;
+    renderSongList();
+    showToast(t('toastLibraryReloaded'));
+  } catch (err) {
+    console.error('Songbook: manual song library refresh failed —', err);
+    showToast(t('toastLibraryReloadFailed'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t('reloadBtn');
+  }
+}
+
+// ---------------------------------------------------------
+// In-app back navigation: the hardware/gesture/browser back button should
+// move within the app (song → list, settings → list) instead of leaving
+// it, and only exit after a second back press at the root within a short
+// window — the same "press back again to exit" pattern many apps use.
+// ---------------------------------------------------------
+let lastBackPressAt = 0;
+const EXIT_CONFIRM_WINDOW_MS = 2000;
+
+function initHistoryNav() {
+  // Establish the app's root state so the very first back press has
+  // something of ours to land on instead of leaving immediately.
+  history.replaceState({ page: 'songs' }, '', location.href);
+
+  window.addEventListener('popstate', (e) => {
+    const st = e.state;
+    if (st && st.page) {
+      if (st.page === 'song-view' && st.songId) {
+        const song = state.songs.find(s => s.id === st.songId);
+        if (song) { openSong(song, { pushHistory: false }); return; }
+      }
+      showPage(st.page, { pushHistory: false });
+      return;
+    }
+
+    // No app state left to land on — the next back would leave the app.
+    const now = Date.now();
+    if (now - lastBackPressAt < EXIT_CONFIRM_WINDOW_MS) {
+      // Second press in time: let this one actually exit.
+      return;
+    }
+    lastBackPressAt = now;
+    // Re-plant the root state so this press doesn't leave the app, and
+    // tell the person to press back again if they really want to exit.
+    history.pushState({ page: 'songs' }, '', location.href);
+    showPage('songs', { pushHistory: false });
+    showToast(t('toastPressBackAgain'));
+  });
 }
 
 // ---------------------------------------------------------
@@ -87,17 +233,30 @@ function loadPrefs() {
   document.documentElement.setAttribute('data-theme', theme);
   document.getElementById('theme-toggle').setAttribute('aria-checked', String(theme === 'dark'));
 
-  const accent = localStorage.getItem('sb-accent') || 'periwinkle';
+  const accent = localStorage.getItem('sb-accent') || 'aqua';
   document.documentElement.setAttribute('data-accent', accent);
   document.querySelectorAll('.accent-swatch').forEach(btn => {
     btn.setAttribute('aria-pressed', String(btn.dataset.accent === accent));
   });
 
   const savedLang = localStorage.getItem('sb-ui-lang');
-  state.lang = savedLang || window.SONGBOOK_DEFAULT_LANG || 'mn';
+  const available = Object.keys(window.SONGBOOK_LANG || {});
+  const preferredOrder = window.SONGBOOK_LANG_ORDER || [];
+  const orderedLangs = [
+    ...preferredOrder.filter(code => available.includes(code)),
+    ...available.filter(code => !preferredOrder.includes(code)).sort(),
+  ];
+  state.lang = (savedLang && available.includes(savedLang)) ? savedLang
+    : (available.includes(window.SONGBOOK_DEFAULT_LANG) ? window.SONGBOOK_DEFAULT_LANG : orderedLangs[0]);
   document.documentElement.setAttribute('lang', state.lang);
+
   const langSelect = document.getElementById('ui-lang-select');
-  if (langSelect) langSelect.value = state.lang;
+  if (langSelect) {
+    langSelect.innerHTML = orderedLangs
+      .map(code => `<option value="${code}">${(window.SONGBOOK_LANG[code].meta && window.SONGBOOK_LANG[code].meta.name) || code}</option>`)
+      .join('');
+    langSelect.value = state.lang;
+  }
 
   const lyricsSize = parseFloat(localStorage.getItem('sb-lyrics-size'));
   const chordSize = parseFloat(localStorage.getItem('sb-chord-size'));
@@ -112,13 +271,14 @@ function applyFontSizes() {
 }
 
 // ---------------------------------------------------------
-// i18n: apply the active language to every labeled element
+// Language: apply the active language to every labeled element
 // ---------------------------------------------------------
-function applyI18n() {
+function applyLanguage() {
   document.documentElement.setAttribute('lang', state.lang);
 
   const map = {
     't-appTitle': 'appTitle',
+    't-topbarAppName': 'appTitle',
     't-navSongs': 'navSongs',
     't-navSettings': 'navSettings',
     't-keyLabel': 'keyLabel',
@@ -136,6 +296,8 @@ function applyI18n() {
     't-dbTitle': 'dbTitle',
     't-dbSub': 'dbSub',
     't-sectionApp': 'sectionApp',
+    't-reloadTitle': 'reloadTitle',
+    't-reloadSub': 'reloadSub',
     't-sectionAbout': 'sectionAbout',
     't-versionTitle': 'versionTitle',
   };
@@ -156,9 +318,27 @@ function applyI18n() {
   document.getElementById('db-option-en').textContent = t('dbComingSoon', 'English');
 
   document.getElementById('empty-state').textContent = t('emptyState');
-  document.getElementById('version-sub').textContent = t('versionSub', APP_VERSION);
+  document.getElementById('about-version-line').textContent = t('versionSub', APP_VERSION);
+
+  const appConfig = window.SONGBOOK_APP_CONFIG || {};
+  const orgName = appConfig.orgName || '';
+  document.getElementById('about-org').textContent = orgName;
   document.getElementById('about-copyright').textContent =
-    `© ${new Date().getFullYear()} Next Gen Union. All rights reserved.`;
+    `© ${new Date().getFullYear()} ${orgName}. All rights reserved.`;
+
+  const contactBtn = document.getElementById('about-contact-btn');
+  if (appConfig.contactEmail) {
+    contactBtn.hidden = false;
+    contactBtn.href = `mailto:${appConfig.contactEmail}`;
+  } else {
+    contactBtn.hidden = true;
+  }
+  document.getElementById('t-contactBtn').textContent = t('contactBtn');
+
+  const reloadBtn = document.getElementById('reload-songs-btn');
+  if (!reloadBtn.disabled) reloadBtn.textContent = t('reloadBtn');
+
+  renderSocialLinks();
 
   refreshInstallLabels();
   renderSongList();
@@ -172,12 +352,13 @@ function bindNav() {
   document.querySelectorAll('.nav-btn[data-nav]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
-      showPage(btn.dataset.nav === 'songs' ? 'songs' : btn.dataset.nav);
+      showPage(btn.dataset.nav === 'songs' ? 'songs' : btn.dataset.nav, { pushHistory: true });
     });
   });
 }
 
-function showPage(name) {
+function showPage(name, opts = {}) {
+  const { pushHistory = false, replaceHistory = false } = opts;
   const map = { songs: 'page-songs', settings: 'page-settings', 'song-view': 'page-song-view' };
   Object.values(map).forEach(id => document.getElementById(id).hidden = true);
   document.getElementById(map[name]).hidden = false;
@@ -188,7 +369,19 @@ function showPage(name) {
   } else if (name === 'settings') {
     document.querySelector('.nav-btn[data-nav="settings"]').classList.add('is-active');
   }
+
+  // The song view is a focused reading mode: hide the bottom tab bar so
+  // nothing competes with the lyrics (the song view has its own slim top bar).
+  document.getElementById('bottom-nav').hidden = (name === 'song-view');
+  document.body.classList.toggle('nav-hidden', name === 'song-view');
+
   window.scrollTo(0, 0);
+
+  if (pushHistory) {
+    history.pushState({ page: name }, '', location.href);
+  } else if (replaceHistory) {
+    history.replaceState({ page: name }, '', location.href);
+  }
 }
 
 // ---------------------------------------------------------
@@ -226,13 +419,20 @@ function stripChords(lyricsArr) {
 
 function matchesQuery(song, q) {
   if (!q) return true;
-  if (song.title.toLowerCase().includes(q)) return true;
-  if (String(song.number).includes(q)) return true;
-  if ((song.alternateTitles || []).some(tt => tt.toLowerCase().includes(q))) return true;
-  if ((song.artist || '').toLowerCase().includes(q)) return true;
-  const plain = stripChords(song.lyrics).toLowerCase();
-  if (plain.includes(q)) return true;
-  return false;
+
+  const haystack = [
+    song.title,
+    String(song.number),
+    ...(song.alternateTitles || []),
+    song.artist || '',
+    stripChords(song.lyrics),
+  ].join(' \n ').toLowerCase();
+
+  // Every word in the query must appear somewhere in the combined text,
+  // in any order — so "God awesome" matches "God Is an Awesome God"
+  // even though that exact phrase never appears contiguously.
+  const words = q.split(/\s+/).filter(Boolean);
+  return words.every(word => haystack.includes(word));
 }
 
 function sortSongs(list) {
@@ -261,6 +461,14 @@ function renderSongList() {
   const listEl = document.getElementById('song-list');
   const emptyEl = document.getElementById('empty-state');
   const countEl = document.getElementById('results-count');
+
+  if (state.loadFailed) {
+    listEl.innerHTML = `<li class="load-error">${escapeHtml(t('songLoadError'))}</li>`;
+    emptyEl.hidden = true;
+    countEl.textContent = '';
+    return;
+  }
+
 
   const filtered = sortSongs(state.songs.filter(s => matchesQuery(s, state.query)));
 
@@ -293,7 +501,7 @@ function renderSongList() {
 // Song view: chord-over-lyric rendering + transpose
 // ---------------------------------------------------------
 function bindSongView() {
-  document.getElementById('back-btn').addEventListener('click', () => showPage('songs'));
+  document.getElementById('back-btn').addEventListener('click', () => history.back());
 
   document.getElementById('transpose-up').addEventListener('click', () => {
     if (state.transpose >= TRANSPOSE_LIMIT) return;
@@ -324,7 +532,8 @@ function bindSongView() {
   });
 }
 
-function openSong(song) {
+function openSong(song, opts = {}) {
+  const { pushHistory = true } = opts;
   state.activeSong = song;
   state.transpose = 0;
 
@@ -386,6 +595,9 @@ function openSong(song) {
 
   updateTransposeUI();
   showPage('song-view');
+  if (pushHistory) {
+    history.pushState({ page: 'song-view', songId: song.id }, '', location.href);
+  }
 }
 
 function updateTransposeUI() {
@@ -516,6 +728,8 @@ function renderLyrics() {
 // Settings: theme, UI language, database select, install
 // ---------------------------------------------------------
 function bindSettings() {
+  document.getElementById('reload-songs-btn').addEventListener('click', reloadSongLibrary);
+
   const toggle = document.getElementById('theme-toggle');
   toggle.addEventListener('click', () => {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -538,7 +752,7 @@ function bindSettings() {
   langSelect.addEventListener('change', () => {
     state.lang = langSelect.value;
     localStorage.setItem('sb-ui-lang', state.lang);
-    applyI18n();
+    applyLanguage();
   });
 
   const dbSelect = document.getElementById('db-select');
@@ -634,12 +848,12 @@ function refreshInstallLabels() {
 
   installTitle.textContent = t('installTitle');
   installBtn.textContent = t('installBtn');
-  installedBadge.textContent = t('installedBadge');
 
   switch (installState) {
     case 'installed':
       installBtn.hidden = true;
       installedBadge.hidden = false;
+      installedBadge.textContent = t('installedBadgeDone');
       installSub.textContent = t('installSubInstalled');
       break;
     case 'insecure':

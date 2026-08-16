@@ -14,10 +14,10 @@
   --surface:      #FFFFFF;
   --danger:       #B4483C;
 
-  /* Accent palette — default periwinkle; overridden per data-accent value below. */
-  --accent:        #5B7FDE;
-  --accent-strong: #3A56AE;
-  --accent-tint:   #E4EAFB;
+  /* Accent palette — default aqua; overridden per data-accent value below. */
+  --accent:        #44CAFD;
+  --accent-strong: #0E86B8;
+  --accent-tint:   #E1F6FE;
 
   --shadow-1: 0 1px 2px rgba(31,42,68,0.06), 0 1px 1px rgba(31,42,68,0.04);
   --shadow-2: 0 6px 20px rgba(31,42,68,0.10);
@@ -44,9 +44,9 @@ html[data-theme="dark"] {
   --ink-soft:     #B7BCCB;
   --ink-faint:    #6C7285;
   --line:         #2A3247;
-  --accent:        #8CA6EE;
-  --accent-strong: #C7D4F8;
-  --accent-tint:   #1E2A44;
+  --accent:        #6FDBFF;
+  --accent-strong: #BEEFFF;
+  --accent-tint:   #113247;
   --surface:      #1B2237;
   --danger:       #E08277;
   --shadow-1: 0 1px 2px rgba(0,0,0,0.35);
@@ -58,13 +58,13 @@ html[data-theme="dark"] {
 html[data-accent="periwinkle"] { --accent: #5B7FDE; --accent-strong: #3A56AE; --accent-tint: #E4EAFB; }
 html[data-accent="sage"]       { --accent: #6FA37E; --accent-strong: #3F6350; --accent-tint: #E3EEE6; }
 html[data-accent="lavender"]   { --accent: #8C7FCB; --accent-strong: #5B4FA8; --accent-tint: #EDEAFB; }
-html[data-accent="aqua"]       { --accent: #3FA9B0; --accent-strong: #2A7A80; --accent-tint: #DFF3F3; }
+html[data-accent="aqua"]       { --accent: #44CAFD; --accent-strong: #0E86B8; --accent-tint: #E1F6FE; }
 html[data-accent="cinnamon"]   { --accent: #A9762F; --accent-strong: #8C6526; --accent-tint: #F1E4C8; }
 
 html[data-theme="dark"][data-accent="periwinkle"] { --accent: #8CA6EE; --accent-strong: #C7D4F8; --accent-tint: #1E2A44; }
 html[data-theme="dark"][data-accent="sage"]       { --accent: #8FC29E; --accent-strong: #C8E6D0; --accent-tint: #1C2E22; }
 html[data-theme="dark"][data-accent="lavender"]   { --accent: #B3A8E8; --accent-strong: #DCD5F5; --accent-tint: #241F3D; }
-html[data-theme="dark"][data-accent="aqua"]       { --accent: #6FCBD1; --accent-strong: #B8E9EC; --accent-tint: #163338; }
+html[data-theme="dark"][data-accent="aqua"]       { --accent: #6FDBFF; --accent-strong: #BEEFFF; --accent-tint: #113247; }
 html[data-theme="dark"][data-accent="cinnamon"]   { --accent: #D9A94B; --accent-strong: #E7BE6C; --accent-tint: #2C2618; }
 
 /* ---------- splash screen ---------- */
@@ -78,7 +78,7 @@ html[data-theme="dark"][data-accent="cinnamon"]   { --accent: #D9A94B; --accent-
   justify-content: center;
   opacity: 1;
   visibility: visible;
-  transition: opacity 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 1.1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 #splash-screen.is-hidden {
   opacity: 0;
@@ -116,6 +116,25 @@ body {
   -webkit-font-smoothing: antialiased;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
 }
+body.nav-hidden {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.song-view-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  margin: 0 -18px;
+  padding: calc(env(safe-area-inset-top) + 10px) 18px 10px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
 
 h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--ink); }
 
@@ -135,10 +154,10 @@ button { font-family: inherit; }
 
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  color: var(--accent-strong);
-  line-height: 1;
+  width: 26px;
+  height: 26px;
+  fill: var(--accent-strong);
+  flex-shrink: 0;
 }
 .page-header h1 {
   font-size: 1.7rem;
@@ -289,6 +308,15 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   padding: 0 20px;
   line-height: 1.5;
 }
+.load-error {
+  text-align: center;
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 48px;
+  padding: 0 20px;
+  line-height: 1.5;
+  list-style: none;
+}
 
 /* ---------- song view ---------- */
 .song-view-header {
@@ -398,6 +426,7 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   border-radius: var(--radius-l);
   padding: 24px 20px 28px;
   box-shadow: var(--shadow-1);
+  overflow-x: hidden;
 }
 
 .lyric-section { margin-top: 24px; }
@@ -426,7 +455,10 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .chord-tag {
@@ -448,13 +480,16 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   font-size: var(--lyrics-size);
   color: var(--ink);
   font-family: var(--font-body);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .sv-audio { margin-top: 20px; }
 .audio-item { margin-top: 8px; }
 .audio-item + .audio-item { margin-top: 16px; }
 .audio-download {
-  display: inline-flex;
+  display: none; /* planned for a future version — re-enable by removing this line */
   align-items: center;
   gap: 4px;
   margin-top: 6px;
@@ -464,7 +499,8 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   text-decoration: none;
 }
 
-.sv-links { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.sv-links { flex-direction: column; gap: 8px; margin-top: 12px; }
+.sv-links:not([hidden]) { display: flex; }
 .sv-link-btn {
   display: flex;
   align-items: center;
@@ -522,10 +558,61 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   font-family: var(--font-body);
 }
 
-.about-block { padding: 6px 16px 16px; }
-.about-appname { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
-.about-org { margin: 2px 0 0; font-size: 0.86rem; color: var(--ink-soft); }
+.about-block { padding: 6px 16px 20px; text-align: center; }
+.about-logo { width: 64px; height: 64px; border-radius: var(--radius-m); margin-bottom: 12px; }
+.about-label { margin: 0; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+.about-appname { margin: 3px 0 0; font-family: var(--font-display); font-size: 1.02rem; font-weight: 600; color: var(--ink); }
+.about-org { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink-soft); }
 .about-copyright { margin: 10px 0 0; font-size: 0.76rem; color: var(--ink-faint); }
+.about-social { display: flex; justify-content: center; gap: 14px; margin-top: 16px; }
+.about-social:empty { margin-top: 0; }
+.about-social a {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+}
+.about-social svg { width: 18px; height: 18px; fill: currentColor; }
+
+.about-contact-btn {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+.about-contact-btn:not([hidden]) { display: inline-flex; }
+.about-contact-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+.scripture-footer {
+  margin: 28px 0 8px;
+  padding: 0 24px;
+  text-align: center;
+}
+.scripture-footer p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+.scripture-footer cite {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+  opacity: 0.8;
+}
 
 .switch {
   width: 46px; height: 27px;
@@ -562,6 +649,19 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 }
 html[data-theme="dark"] .btn-primary { background: var(--accent); color: var(--paper-dim); }
 
+.btn-secondary {
+  background: transparent;
+  color: var(--accent-strong);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .installed-badge {
   font-size: 0.82rem;
   font-weight: 600;
@@ -594,11 +694,11 @@ html[data-theme="dark"] .btn-primary { background: var(--accent); color: var(--p
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--surface);
   border-top: 1px solid var(--line);
-  display: flex;
   justify-content: center;
   gap: 64px;
   z-index: 20;
 }
+.bottom-nav:not([hidden]) { display: flex; }
 .nav-btn {
   flex: 0 0 auto;
   min-width: 84px;

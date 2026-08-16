@@ -1,4 +1,4 @@
-# Songbook — Worship Song App (v0.0.6)
+# Songbook — Worship Song App (v0.0.1)
 
 An offline-first worship songbook PWA. Static HTML/CSS/JS, no build step, no
 backend — built to run on GitHub Pages and install like a native app.
@@ -25,27 +25,36 @@ backend — built to run on GitHub Pages and install like a native app.
 ```
 index.html          App shell — every page lives here, toggled by JS
 css/style.css        Design tokens + styles (light & dark themes)
-js/app.js            All app logic: search, sort, transpose, i18n, install
-data/songs.js         Song content as a plain JS global — edit this to add/remove songs
-data/i18n.js          Interface text for Mongolian and English
+js/app.js            All app logic: search, sort, transpose, language switching, install
+data/songs/           One JSON file per song + manifest.json listing them
+lang/*.js         Interface text — one file per language (config.js + eng.js/mn.js/kr.js)
 manifest.json         PWA manifest
 service-worker.js     Offline caching (cache-first w/ background refresh)
-icons/                App icons (192, 512, and maskable variants)
+icons/                App icons and logos
 ```
 
-## Why song data is a `.js` file, not `.json`
+## Why song data moved to one JSON file per song
 
-Earlier drafts loaded `songs.json` with `fetch()`. Browsers block `fetch()`
-of local files when a page is opened directly (`file://…/index.html`) — no
-server involved — which is almost certainly why songs weren't showing up.
-`data/songs.js` sets a plain `window.SONGBOOK_DATA` global and loads via a
-normal `<script>` tag, which works whether the app is opened directly from
-disk, from a local server, or from GitHub Pages. No other change needed.
+Each song is its own file under `data/songs/` (e.g. `s001.json`), listed in
+`data/songs/manifest.json`. This makes adding, editing, or handing off a
+single song trivial — no more scrolling a 2,000-line file to find one song,
+and version-control diffs stay small and readable.
+
+**Trade-off:** this loads the data with `fetch()`, which browsers block when
+a page is opened directly from disk (`file://…/index.html`) — the exact
+problem an earlier draft of this app avoided by using a single `.js` file
+with a global variable instead. That workaround is gone now. **The app must
+be served over `http://` or `https://`** — even `http://localhost` is
+enough — for the song list to load at all. This same requirement already
+applied to installability and offline support, so it isn't a new category of
+limitation, just a stricter version of one that was already there.
 
 ## Editing the song list
 
-Every song lives in `data/songs.js` inside the `window.SONGBOOK_DATA` array —
-open the file, add a new object, save. The app picks it up automatically.
+To add a song: create `data/songs/sNNN.json` (copy an existing one as a
+template) and add its filename to `data/songs/manifest.json`. To edit a
+song: open its file directly. Nothing in `js/app.js` needs to change either
+way — the manifest is the only "index" the app needs.
 
 Chords are written inline in the lyric line using square brackets right
 before the syllable they land on:
@@ -66,7 +75,7 @@ later versions can light them up without a schema change.
 
 ## Interface language (Mongolian / English)
 
-`data/i18n.js` holds every UI string in both languages. The app defaults to
+`lang/` holds one file per interface language (config.js sets the default and order). The app defaults to
 **Mongolian** — set by `window.SONGBOOK_DEFAULT_LANG = "mn"` at the bottom of
 that file. Change that line to `"en"` if you want English as the default;
 either way, people can switch languages themselves from **Settings → App
@@ -76,7 +85,7 @@ This is the *interface* language (menus, buttons, labels) — separate from
 the song database selector, which controls which songbook's content you're
 viewing, matching the plan's note that these are independent settings.
 
-To add a third language: copy the `en` block in `data/i18n.js`, translate
+To add a new language: copy `lang/eng.js`, translate every value, set its key, add a <script> line in index.html
 each value, add it under a new key (e.g. `ko`), and add an `<option>` for it
 in the `#ui-lang-select` dropdown in `index.html`.
 

@@ -1,24 +1,38 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.5';
+const CACHE_VERSION = 'songbook-v0.0.10';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
   './js/app.js',
-  './data/i18n.js',
-  './data/songs.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-192.png',
-  './icons/icon-maskable-512.png',
+  './config.js',
+  './lang/config.js',
+  './lang/eng.js',
+  './lang/mn.js',
+  './lang/kr.js',
+
+  './icons/app-icon-192.png',
+  './icons/app-icon-512.png',
+  './icons/app-icon-maskable-192.png',
+  './icons/app-icon-maskable-512.png',
+  './icons/splash-logo.png',
+  './icons/about-logo.png',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) =>
+        cache.addAll(APP_SHELL)
+          .then(() => fetch('./data/songs/manifest.json'))
+          .then((res) => res.json())
+          .then((songFiles) => {
+            const songUrls = songFiles.map((f) => `./data/songs/${f}`);
+            return cache.addAll(['./data/songs/manifest.json', ...songUrls]);
+          })
+      )
       .then(() => self.skipWaiting())
   );
 });
