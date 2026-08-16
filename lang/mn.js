@@ -46,7 +46,7 @@ window.SONGBOOK_LANG.mn = {
   installedBadge: "Суулгаж байна",
   installedBadgeDone: "✓ Суулгасан",
   versionTitle: "Хувилбар",
-  versionSub: (v) => `NextGen Worship ${v} · Stable`,
+  versionSub: (v) => `NextGen Worship ${v} · Alpha - Unstable`,
   toastDbSaved: "Дууны сангийн тохиргоог хадгаллаа",
   toastIosHint: 'Хуваалцах товч дээр дараад "Нүүр дэлгэцэнд нэмэх"-ийг сонгоно уу',
   toastPressBackAgain: "Гарахын тулд буцах товчийг дахин дарна уу",
