@@ -175,10 +175,13 @@
     </div>
     <div class="settings-row">
       <div class="settings-row-text">
-        <span class="settings-row-title" id="t-reloadTitle">Refresh song library</span>
-        <span class="settings-row-sub" id="t-reloadSub">Re-download all songs — use this if something looks out of date</span>
+        <span class="settings-row-title" id="t-reloadTitle">Refresh song database</span>
+        <span class="settings-row-sub" id="t-reloadSub">Re-download all songs, or fully reload the app if something looks out of date</span>
       </div>
-      <button id="reload-songs-btn" class="btn-secondary" type="button"></button>
+      <div class="settings-row-actions">
+        <button id="reload-songs-btn" class="btn-secondary" type="button"></button>
+        <button id="reload-app-btn" class="btn-secondary" type="button"></button>
+      </div>
     </div>
   </section>
 
@@ -187,7 +190,7 @@
     <div class="about-block">
       <img src="icons/about-logo.png" alt="" class="about-logo">
       <p class="about-label" id="t-versionTitle">Version</p>
-      <p class="about-appname" id="about-version-line">Next Gen Worship v0.0.5 · Stable Release</p>
+      <p class="about-appname" id="about-version-line">Next Gen Worship</p>
       <p class="about-copyright" id="about-copyright"></p>
       <a class="about-contact-btn" id="about-contact-btn" href="#">
         <svg data-icon="contact-mail" viewBox="0 0 24 24"></svg>

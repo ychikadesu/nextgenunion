@@ -1,7 +1,12 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.13';
-const APP_SHELL = [
+const CACHE_VERSION = 'songbook-v0.0.15';
+
+// The core shell: without any one of these the app can't run at all, so
+// these are cached atomically — if even one fails, the whole install fails
+// and the OLD service worker (and its cache) stays in control until a
+// retry succeeds. This is intentional for the core shell.
+const CORE_SHELL = [
   './',
   './index.html',
   './manifest.json',
@@ -12,7 +17,14 @@ const APP_SHELL = [
   './lang/eng.js',
   './lang/mn.js',
   './lang/kr.js',
+];
 
+// Icons and other assets: cached best-effort, one at a time. A single
+// missing or renamed file here (e.g. after swapping in a custom icon)
+// must NEVER be able to fail the whole install — that would leave every
+// visitor stuck on an old cached version indefinitely, with no way to
+// pick up a fix short of manually clearing site data.
+const BEST_EFFORT_ASSETS = [
   './icons/app-icon-192.png',
   './icons/app-icon-512.png',
   './icons/app-icon-maskable-192.png',
@@ -33,16 +45,33 @@ const APP_SHELL = [
   './icons/svg/social-website.svg',
 ];
 
+function cacheBestEffort(cache, urls) {
+  return Promise.allSettled(
+    urls.map((url) =>
+      cache.add(url).catch((err) => {
+        console.warn('Songbook SW: could not precache', url, '—', err);
+      })
+    )
+  );
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
       .then((cache) =>
-        cache.addAll(APP_SHELL)
+        cache.addAll(CORE_SHELL)
+          .then(() => cacheBestEffort(cache, BEST_EFFORT_ASSETS))
           .then(() => fetch('./data/songs/manifest.json'))
           .then((res) => res.json())
           .then((songFiles) => {
             const songUrls = songFiles.map((f) => `./data/songs/${f}`);
-            return cache.addAll(['./data/songs/manifest.json', ...songUrls]);
+            return cacheBestEffort(cache, ['./data/songs/manifest.json', ...songUrls]);
+          })
+          .catch((err) => {
+            // Song data failing to load at install time (e.g. offline on
+            // first visit) shouldn't block the shell from installing —
+            // the app already handles a missing song cache gracefully.
+            console.warn('Songbook SW: song data precache skipped —', err);
           })
       )
       .then(() => self.skipWaiting())

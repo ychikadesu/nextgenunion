@@ -114,6 +114,9 @@ html, body {
   height: 100%;
   color: var(--ink);
   overflow-x: hidden;
+  /* Stop the browser's native pull-to-refresh / rubber-band gesture when
+     swiping down at the top of the page (Chrome/Android, installed PWAs). */
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -555,6 +558,7 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 14px;
   padding: 14px 16px;
   border-top: 1px solid var(--line);
@@ -563,6 +567,8 @@ html[data-theme="dark"] .sort-btn[aria-pressed="true"] {
 .settings-row-text { display: flex; flex-direction: column; min-width: 0; }
 .settings-row-title { font-size: 0.96rem; font-weight: 600; color: var(--ink); }
 .settings-row-sub { font-size: 0.8rem; color: var(--ink-faint); margin-top: 2px; }
+.settings-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.settings-row-actions .btn-secondary { white-space: nowrap; }
 
 .select-input {
   border: 1px solid var(--line);

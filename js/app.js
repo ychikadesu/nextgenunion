@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.13';
+const APP_VERSION = 'v0.0.15';
 
 const state = {
   songs: [],
@@ -121,21 +121,34 @@ function t(key, ...args) {
 // ---------------------------------------------------------
 document.addEventListener('DOMContentLoaded', init);
 
+// Each startup step runs independently — if one throws (a missing element,
+// a bad selector, anything), the rest still run. Without this, one broken
+// step could silently prevent applyLanguage() from ever running, leaving
+// the static English placeholders in index.html on screen permanently
+// instead of the real (translated) content.
+function safe(label, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`Songbook: "${label}" failed during startup —`, err);
+  }
+}
+
 async function init() {
-  initIcons();
-  initSplash();
-  loadPrefs();
-  bindNav();
-  bindSongsPage();
-  bindSongView();
-  bindSettings();
-  applyLanguage();
-  registerServiceWorker();
-  setupInstallPrompt();
-  initHistoryNav();
+  safe('initIcons', initIcons);
+  safe('initSplash', initSplash);
+  safe('loadPrefs', loadPrefs);
+  safe('bindNav', bindNav);
+  safe('bindSongsPage', bindSongsPage);
+  safe('bindSongView', bindSongView);
+  safe('bindSettings', bindSettings);
+  safe('applyLanguage', applyLanguage);
+  safe('registerServiceWorker', registerServiceWorker);
+  safe('setupInstallPrompt', setupInstallPrompt);
+  safe('initHistoryNav', initHistoryNav);
 
   await loadSongData();
-  applyLanguage(); // re-run so the results count reflects the loaded songs
+  safe('applyLanguage (post-load)', applyLanguage); // re-run so the results count reflects the loaded songs
 }
 
 // ---------------------------------------------------------
@@ -231,7 +244,7 @@ async function loadSongData() {
   }
 }
 
-// Manual "Refresh song library" button: asks the service worker to try the
+// Manual "Refresh song database" button: asks the service worker to try the
 // network first (see the X-Force-Refresh handling in service-worker.js),
 // falling back to the existing cached copy if that fails — so a refresh
 // attempted while offline just silently keeps the offline copy intact
@@ -252,11 +265,39 @@ async function reloadSongLibrary() {
     renderSongList();
     showToast(navigator.onLine ? t('toastLibraryReloaded') : t('toastLibraryOffline'));
   } catch (err) {
-    console.error('Songbook: manual song library refresh failed —', err);
+    console.error('Songbook: manual song database refresh failed —', err);
     showToast(t('toastLibraryReloadFailed'));
   } finally {
     btn.disabled = false;
     btn.textContent = t('reloadBtn');
+  }
+}
+
+// Manual "Reload app" button: a different, heavier reload than the song
+// database refresh above — this clears the offline app-shell cache and the
+// service worker entirely, then reloads the page, so it picks up a fresh
+// copy of everything (HTML/CSS/JS included), not just the song data. This
+// exists as an explicit, deliberate action the person has to tap, since the
+// browser's native swipe-down-to-reload gesture is disabled in this app
+// (accidental pull-to-refresh mid-scroll was closing songs/losing state).
+async function reloadApp() {
+  const btn = document.getElementById('reload-app-btn');
+  btn.disabled = true;
+  btn.textContent = t('reloadAppBtnBusy');
+
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch (err) {
+    console.error('Songbook: app reload cleanup failed —', err);
+  } finally {
+    window.location.reload();
   }
 }
 
@@ -434,6 +475,8 @@ function applyLanguage() {
 
   const reloadBtn = document.getElementById('reload-songs-btn');
   if (!reloadBtn.disabled) reloadBtn.textContent = t('reloadBtn');
+  const reloadAppBtn = document.getElementById('reload-app-btn');
+  if (!reloadAppBtn.disabled) reloadAppBtn.textContent = t('reloadAppBtn');
 
   renderSocialLinks();
 
@@ -860,6 +903,7 @@ function resetContactUI() {
 
 function bindSettings() {
   document.getElementById('reload-songs-btn').addEventListener('click', reloadSongLibrary);
+  document.getElementById('reload-app-btn').addEventListener('click', reloadApp);
 
   document.getElementById('about-contact-btn').addEventListener('click', () => {
     // Let the mailto: link proceed as normal (opens the person's mail app,
