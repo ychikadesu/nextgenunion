@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.16';
+const APP_VERSION = 'v0.0.17';
 
 const state = {
   songs: [],
@@ -146,9 +146,28 @@ async function init() {
   safe('registerServiceWorker', registerServiceWorker);
   safe('setupInstallPrompt', setupInstallPrompt);
   safe('initHistoryNav', initHistoryNav);
+  requestPersistentStorage(); // fire-and-forget; never block startup on this
 
   await loadSongData();
   safe('applyLanguage (post-load)', applyLanguage); // re-run so the results count reflects the loaded songs
+}
+
+// Ask the browser not to automatically evict our Cache Storage / IndexedDB
+// under storage pressure. This is a real, standard API — but it's worth
+// being clear about what it does and doesn't cover: it protects against
+// the browser's own automatic eviction, not against a user (or an OEM
+// "phone manager" cleanup tool) explicitly clearing the app's storage —
+// that's a stronger, OS-level action no web page can prevent.
+async function requestPersistentStorage() {
+  if (!(navigator.storage && navigator.storage.persist)) return;
+  try {
+    const already = await navigator.storage.persisted();
+    if (already) return;
+    const granted = await navigator.storage.persist();
+    console.log('Songbook: persistent storage', granted ? 'granted' : 'not granted (browser declined)');
+  } catch (err) {
+    console.warn('Songbook: persistent storage request failed —', err);
+  }
 }
 
 // ---------------------------------------------------------
