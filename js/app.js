@@ -595,14 +595,43 @@ function matchesQuery(song, q) {
   return words.every(word => haystack.includes(word));
 }
 
-function sortSongs(list) {
+// Lower rank = more relevant. Used only while a search query is active,
+// so exact/close title matches float to the top instead of being buried
+// among "contains the word somewhere in the lyrics" results.
+function relevanceRank(song, q) {
+  const query = q.trim().toLowerCase();
+  if (!query) return 6;
+
+  const title = (song.title || '').toLowerCase();
+  const altTitles = (song.alternateTitles || []).filter(Boolean).map(a => a.toLowerCase());
+  const artist = (song.artist || '').toLowerCase();
+
+  if (title === query) return 0;                              // exact title match
+  if (title.startsWith(query)) return 1;                       // title starts with query
+  if (title.includes(query)) return 2;                         // title contains query
+  if (altTitles.some(a => a === query)) return 3;               // exact alternate title
+  if (altTitles.some(a => a.includes(query))) return 4;         // alternate title contains query
+  if (artist.includes(query)) return 5;                         // artist match
+  return 6;                                                     // everything else (e.g. lyrics)
+}
+
+function sortSongs(list, q) {
   const arr = [...list];
   const dir = state.sortOrder === 'desc' ? -1 : 1;
-  if (state.sortBy === 'num') {
-    arr.sort((a, b) => (a.number - b.number) * dir);
-  } else {
-    arr.sort((a, b) => a.title.localeCompare(b.title) * dir);
-  }
+  const query = (q || '').trim();
+
+  arr.sort((a, b) => {
+    if (query) {
+      const rankA = relevanceRank(a, query);
+      const rankB = relevanceRank(b, query);
+      if (rankA !== rankB) return rankA - rankB;
+    }
+    if (state.sortBy === 'num') {
+      return (a.number - b.number) * dir;
+    }
+    return a.title.localeCompare(b.title) * dir;
+  });
+
   return arr;
 }
 
@@ -630,7 +659,7 @@ function renderSongList() {
   }
 
 
-  const filtered = sortSongs(state.songs.filter(s => matchesQuery(s, state.query)));
+  const filtered = sortSongs(state.songs.filter(s => matchesQuery(s, state.query)), state.query);
 
   countEl.textContent = filtered.length === state.songs.length
     ? t('resultsAll', filtered.length)
