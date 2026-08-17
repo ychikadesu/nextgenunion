@@ -1,6 +1,6 @@
 // Songbook service worker — offline-first app shell + data cache.
 // Bump CACHE_VERSION whenever shipped files change so clients pick up updates.
-const CACHE_VERSION = 'songbook-v0.0.15';
+const CACHE_VERSION = 'songbook-v0.0.16';
 
 // The core shell: without any one of these the app can't run at all, so
 // these are cached atomically — if even one fails, the whole install fails
@@ -56,24 +56,13 @@ function cacheBestEffort(cache, urls) {
 }
 
 self.addEventListener('install', (event) => {
+  // Deliberately minimal and fast: only the small core shell is required
+  // for the install to succeed. A slow or interrupted install is exactly
+  // the kind of thing aggressive mobile battery/task managers cut short —
+  // keeping this fast is what makes the install itself reliable.
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) =>
-        cache.addAll(CORE_SHELL)
-          .then(() => cacheBestEffort(cache, BEST_EFFORT_ASSETS))
-          .then(() => fetch('./data/songs/manifest.json'))
-          .then((res) => res.json())
-          .then((songFiles) => {
-            const songUrls = songFiles.map((f) => `./data/songs/${f}`);
-            return cacheBestEffort(cache, ['./data/songs/manifest.json', ...songUrls]);
-          })
-          .catch((err) => {
-            // Song data failing to load at install time (e.g. offline on
-            // first visit) shouldn't block the shell from installing —
-            // the app already handles a missing song cache gracefully.
-            console.warn('Songbook SW: song data precache skipped —', err);
-          })
-      )
+      .then((cache) => cache.addAll(CORE_SHELL))
       .then(() => self.skipWaiting())
   );
 });
@@ -84,7 +73,31 @@ self.addEventListener('activate', (event) => {
       Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+
+  // Bulk precaching of icons + all song files happens here, in the
+  // background, deliberately OUTSIDE of event.waitUntil — so activation
+  // itself completes fast and unconditionally, and this can never delay or
+  // break it. If it gets interrupted partway (tab closed, device sleeps),
+  // it simply doesn't finish this time; nothing is left broken, and songs
+  // still get cached individually as they're viewed via the fetch handler
+  // below, plus the IndexedDB backup in app.js covers the rest.
+  precacheEverythingElseInBackground();
 });
+
+function precacheEverythingElseInBackground() {
+  caches.open(CACHE_VERSION).then((cache) => {
+    cacheBestEffort(cache, BEST_EFFORT_ASSETS);
+    fetch('./data/songs/manifest.json')
+      .then((res) => res.json())
+      .then((songFiles) => {
+        const songUrls = songFiles.map((f) => `./data/songs/${f}`);
+        return cacheBestEffort(cache, ['./data/songs/manifest.json', ...songUrls]);
+      })
+      .catch((err) => {
+        console.warn('Songbook SW: background song precache skipped —', err);
+      });
+  });
+}
 
 // Strategy: cache-first for everything, EXCEPT requests explicitly marked
 // as a manual refresh (X-Force-Refresh header) — those go network-first,

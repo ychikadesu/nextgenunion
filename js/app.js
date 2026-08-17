@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.0.15';
+const APP_VERSION = 'v0.0.16';
 
 const state = {
   songs: [],
