@@ -5,8 +5,9 @@
   "artist": "Адвентист Сүм Магтаал",
   "key": "Em",
   "lyrics": [
-    "[Em]Gloria Gloria [Am]Abba [Em]Abba Father [B7] [Em]",
-    "[Am]Abba [Em]Abba Father [B7] [Em]",
+    "[Em]Gloria Gloria [Am]Abba [Em]Abba [B7][Em]Father",
+    "[Am]Abba [Em]Abba [B7][Em]Father",
+    "",
     "Алдартай алдартай Abba Abba Аав минь",
     "Abba Abba Аав минь"
   ]
