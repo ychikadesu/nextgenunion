@@ -338,6 +338,19 @@ let lastBackPressAt = 0;
 const EXIT_CONFIRM_WINDOW_MS = 2000;
 
 function initHistoryNav() {
+  // Every pushState below reuses the same URL (only the state object
+  // changes — {page: 'songs'} vs {page: 'song-view'}, etc.), since this is
+  // a single-page app with no per-page URLs. Left on its default 'auto',
+  // the browser tries to restore its own remembered scroll position on
+  // top of ours whenever you navigate back/forward — and because all the
+  // entries share one URL, it can restore the wrong one (typically 0),
+  // silently overwriting the position showPage() just set. Switching to
+  // 'manual' hands scroll restoration entirely to our own code below,
+  // which is the only thing that actually knows which page is showing.
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
   // Establish the app's root state so the very first back press has
   // something of ours to land on instead of leaving immediately.
   history.replaceState({ page: 'songs' }, '', location.href);
