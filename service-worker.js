@@ -17,6 +17,7 @@ const CORE_SHELL = [
   './lang/eng.js',
   './lang/mn.js',
   './lang/kr.js',
+  './lang/mn2.js',
 ];
 
 // Icons and other assets: cached best-effort, one at a time. A single
