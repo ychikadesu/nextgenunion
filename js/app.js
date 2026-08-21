@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.17.4';
+const APP_VERSION = 'v0.17.5';
 
 // --- Hard update backstop -------------------------------------------------
 // Everything above (scrollRestoration, controllerchange auto-reload,

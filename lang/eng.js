@@ -8,7 +8,7 @@ window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
 window.SONGBOOK_LANG.en = {
   meta: { name: "English" },
 
-  appTitle: "Next Gen Worship",
+  appTitle: "Songbook / Дууны ном",
   searchPlaceholder: "Search title, number, or a lyric…",
   sortByAlpha: "Alphabet",
   sortByNumber: "Number",

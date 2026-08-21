@@ -4,7 +4,7 @@ window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
 window.SONGBOOK_LANG.kr = {
   meta: { name: "한국어" },
 
-  appTitle: "Next Gen Worship",
+  appTitle: "Songbook / Дууны ном",
   searchPlaceholder: "제목, 번호 또는 가사로 검색…",
   sortByAlpha: "가나다순",
   sortByNumber: "번호순",

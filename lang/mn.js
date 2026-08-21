@@ -4,7 +4,7 @@ window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
 window.SONGBOOK_LANG.mn = {
   meta: { name: "Монгол" },
 
-  appTitle: "Next Gen Worship",
+  appTitle: "Songbook / Дууны ном",
   searchPlaceholder: "Гарчиг, дугаар, эсвэл үгээр хайх…",
   sortByAlpha: "Цагаан толгойгоор",
   sortByNumber: "Дугаараар",
