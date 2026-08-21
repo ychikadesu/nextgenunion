@@ -1,8 +1,8 @@
-// Монгол (mn.js)
-// Self-registers into window.SONGBOOK_LANG under the "mn" key.
+// ᠮᠣᠩᠭᠣᠯ (mn2.js)
+// Self-registers into window.SONGBOOK_LANG under the "mn2" key.
 window.SONGBOOK_LANG = window.SONGBOOK_LANG || {};
-window.SONGBOOK_LANG.mn = {
-  meta: { name: "Монгол" },
+window.SONGBOOK_LANG.mn2 = {
+  meta: { name: "ᠮᠣᠩᠭᠣᠯ" },
 
   appTitle: "ᠳᠠᠭᠤᠨ ᠤ᠋ ᠨᠣᠮ",
   searchPlaceholder: "ᠭᠠᠷᠴᠠᠭ᠂ ᠳ᠋ᠤᠭᠠᠷ᠂ ᠡᠰᠡᠪᠡᠯ ᠦᢉᠡ ᠪᠡᠷ ᠬᠠᠶᠢᠬᠤ…",
