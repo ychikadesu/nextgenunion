@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.17.6';
+const APP_VERSION = 'v0.18.0';
 
 // --- Hard update backstop -------------------------------------------------
 // Everything above (scrollRestoration, controllerchange auto-reload,
@@ -57,11 +57,13 @@ const state = {
   currentPage: 'songs', // mirrors whichever page is currently visible (see showPage)
 };
 
-// Remembers each page's scroll position across navigation so leaving a page
-// (open a song, switch tabs) and coming back lands where you left off,
-// instead of jumping to the top every time. song-view is intentionally not
-// listed here — it always starts at the top since it shows fresh content
-// (a different song) each time it's opened. See showPage().
+// Remembers each page's scroll position (each .page element's own
+// scrollTop — see the CSS notes on .page for why it's no longer
+// window/document scroll) across navigation, so leaving a page (open a
+// song, switch tabs) and coming back lands where you left off, instead of
+// jumping to the top every time. song-view is intentionally not listed
+// here — it always starts at the top since it shows fresh content (a
+// different song) each time it's opened. See showPage().
 const scrollMemory = { songs: 0, settings: 0 };
 
 // Chord transpose is limited to a full octave in either direction —
@@ -582,13 +584,17 @@ function showPage(name, opts = {}) {
   const isSamePage = state.currentPage === name;
 
   // Otherwise, before switching away, remember where we were scrolled on
-  // the page we're leaving, so coming back to it later restores that spot.
+  // the page's own scroll container (see the CSS/.page notes for why it's
+  // an element's scrollTop now, not window.scrollY) so coming back to it
+  // later restores that exact spot.
   if (!isSamePage && (state.currentPage in scrollMemory)) {
-    scrollMemory[state.currentPage] = window.scrollY;
+    const prevEl = document.getElementById(map[state.currentPage]);
+    if (prevEl) scrollMemory[state.currentPage] = prevEl.scrollTop;
   }
 
   Object.values(map).forEach(id => document.getElementById(id).hidden = true);
-  document.getElementById(map[name]).hidden = false;
+  const targetEl = document.getElementById(map[name]);
+  targetEl.hidden = false;
 
   document.querySelectorAll('.nav-btn[data-nav]').forEach(b => b.classList.remove('is-active'));
   if (name === 'songs' || name === 'song-view') {
@@ -606,10 +612,10 @@ function showPage(name, opts = {}) {
   if (!isSamePage) {
     if (resetScroll || !(name in scrollMemory)) {
       // Fresh page (or explicitly requested, e.g. opening a song): start at the top.
-      window.scrollTo(0, 0);
+      targetEl.scrollTop = 0;
     } else {
       // Returning to a page we've been on before: put the scroll back where it was.
-      window.scrollTo(0, scrollMemory[name]);
+      targetEl.scrollTop = scrollMemory[name];
     }
   }
 

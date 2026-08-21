@@ -122,15 +122,23 @@ html, body {
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  /* The body itself no longer scrolls — each .page below owns its own
+     scroll position independently (see .page and showPage() in app.js).
+     Scrolling used to live on the document/window, which meant restoring
+     "where you were" on the songs list had to fight the browser's own
+     built-in history-based scroll restoration — a system that watches
+     window scroll specifically and, in this app, could never be made
+     fully predictable across every browser/device because pushState here
+     always reuses one URL. An element's own scrollTop is never touched by
+     that system at all; only this app's JS ever sets it, which is what
+     makes "always top when opening a song, exactly-where-you-left-off
+     when going back" actually reliable. */
+  overflow: hidden;
   background:
     radial-gradient(1100px 560px at 12% -8%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
     radial-gradient(900px 500px at 105% 5%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 58%),
     var(--paper);
   background-attachment: fixed;
-}
-body.nav-hidden {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
 }
 
 .song-view-topbar {
@@ -157,10 +165,19 @@ button { font-family: inherit; }
 
 /* ---------- page shell ---------- */
 .page {
+  /* Each page is its own fixed-viewport-size, independently scrolling box
+     (see the note on body, above) rather than part of document flow. */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 18px 24px;
-  min-height: 100%;
+  padding: 0 18px calc(var(--nav-h) + env(safe-area-inset-bottom) + 40px);
+}
+body.nav-hidden .page {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 40px);
 }
 
 .page-header {
