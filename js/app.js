@@ -6,7 +6,7 @@
 // manifest — nothing here needs to change.
 // =========================================================
 
-const APP_VERSION = 'v0.18.0';
+const APP_VERSION = 'v0.18.2';
 
 // --- Hard update backstop -------------------------------------------------
 // Everything above (scrollRestoration, controllerchange auto-reload,
@@ -569,7 +569,13 @@ function bindNav() {
   document.querySelectorAll('.nav-btn[data-nav]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
-      showPage(btn.dataset.nav === 'songs' ? 'songs' : btn.dataset.nav, { pushHistory: true });
+      const target = btn.dataset.nav === 'songs' ? 'songs' : btn.dataset.nav;
+      // Tapping the Songs tab is a deliberate "jump to top of the list"
+      // action — standard tab-bar behavior — even when you're already on
+      // that page. This is different from returning to the songs list via
+      // the in-song back button, which should restore wherever you'd
+      // scrolled to (that path doesn't set resetScroll).
+      showPage(target, { pushHistory: true, resetScroll: target === 'songs' });
     });
   });
 }
@@ -579,8 +585,10 @@ function showPage(name, opts = {}) {
   const map = { songs: 'page-songs', settings: 'page-settings', 'song-view': 'page-song-view' };
 
   // Re-navigating to the page already on screen (e.g. tapping the "Songs"
-  // tab while already viewing the song list) shouldn't move the scroll at
-  // all — just leave it exactly where it is.
+  // tab while already viewing the song list) normally shouldn't move the
+  // scroll at all — just leave it exactly where it is. resetScroll is the
+  // explicit override for that (see bindNav's Songs-tab case): it always
+  // wins and jumps to the top, even on the same page.
   const isSamePage = state.currentPage === name;
 
   // Otherwise, before switching away, remember where we were scrolled on
@@ -609,13 +617,16 @@ function showPage(name, opts = {}) {
   document.getElementById('bottom-nav').hidden = (name === 'song-view');
   document.body.classList.toggle('nav-hidden', name === 'song-view');
 
-  if (!isSamePage) {
-    if (resetScroll || !(name in scrollMemory)) {
-      // Fresh page (or explicitly requested, e.g. opening a song): start at the top.
-      targetEl.scrollTop = 0;
-    } else {
+  if (resetScroll) {
+    // Explicit override: always jump to the top, same page or not.
+    targetEl.scrollTop = 0;
+  } else if (!isSamePage) {
+    if (name in scrollMemory) {
       // Returning to a page we've been on before: put the scroll back where it was.
       targetEl.scrollTop = scrollMemory[name];
+    } else {
+      // Fresh page (e.g. opening a song): start at the top.
+      targetEl.scrollTop = 0;
     }
   }
 
